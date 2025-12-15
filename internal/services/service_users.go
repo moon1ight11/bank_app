@@ -3,7 +3,6 @@ package services
 import (
 	"bank_app/internal/storage/repos/users"
 	"fmt"
-
 	"github.com/google/uuid"
 )
 
@@ -60,4 +59,90 @@ func (u *UsersService) UserAdd(User users.User) (uuid.UUID, error) {
 	}
 
 	return UserID, nil
+}
+
+// получение пользователя
+func (u *UsersService) UserGet(UserID uuid.UUID) (users.User, error) {
+	user, err := u.usersRepo.GetUserByID(UserID)
+	if err != nil {
+		return users.User{}, err
+	}
+
+	return user, nil
+}
+
+// обновление пользователя
+func (u *UsersService) UserUpdate(
+	name *string,
+	surname *string,
+	password *string,
+	email *string,
+	phone *string,
+	tz *string,
+	ID uuid.UUID,
+) error {
+	// открываем транзакцию
+	transaction, err := u.usersRepo.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	// отложенно откатываем транзакцию
+	defer transaction.Rollback()
+
+	if name != nil {
+		err = u.usersRepo.UpdateName(*name, ID, transaction)
+		if err != nil {
+			return err
+		}
+	}
+
+	if surname != nil {
+		err = u.usersRepo.UpdateSurname(*surname, ID, transaction)
+		if err != nil {
+			return err
+		}
+	}
+
+	if password != nil {
+		err = u.usersRepo.UpdatePass(*password, ID, transaction)
+		if err != nil {
+			return err
+		}
+	}
+
+	if email != nil {
+		err = u.usersRepo.UpdateEmail(*email, ID, transaction)
+		if err != nil {
+			return err
+		}
+	}
+
+	if phone != nil {
+		err = u.usersRepo.UpdatePhone(*phone, ID, transaction)
+		if err != nil {
+			return err
+		}
+	}
+
+	if tz != nil {
+		err = u.usersRepo.UpdateTZ(*tz, ID, transaction)
+		if err != nil {
+			return err
+		}
+	}
+
+	// если все ок - подтверждаем транзакцию
+	transaction.Commit()
+	return nil
+}
+
+// удаление пользователя 
+func (u *UsersService) UserDelete(userID uuid.UUID) error {
+	err := u.usersRepo.DeleteUser(userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

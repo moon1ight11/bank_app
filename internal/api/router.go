@@ -65,4 +65,26 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 	privateGroup.PATCH("/users", r.usersHandler.UpdateUser)
 	// удаление пользователя
 	privateGroup.DELETE("/users", r.usersHandler.DeleteUser)
+
+	// СЧЕТА //
+	// создание нового счета
+	privateGroup.POST("/accounts")
+	// получение информации о счете
+	privateGroup.GET("/accounts/:account_id")
+	// удаление счета
+	privateGroup.DELETE("/accounts/:account_id")
+	// пополнение счета
+	privateGroup.PATCH("/accounts/incoming")
+	// списание со счета
+	privateGroup.PATCH("/accounts/outcoming")
+	// перевод
+	privateGroup.PATCH("/accounts/transfer")
+
+	// ОПЕРАЦИИ //
+	// получение всех операций пользователя
+	privateGroup.GET("/operations")
+	// получение операций по конкретному счёту
+	privateGroup.GET("/operations/:account_id")
+	// информация о конкретной операции
+	privateGroup.GET("/operations/info/:operation_id")
 }

@@ -3,6 +3,8 @@ package handlers
 import (
 	"bank_app/internal/jwt"
 	"bank_app/internal/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AccountsHandler struct {
@@ -15,4 +17,9 @@ func NewAccountsHandler(accountsService *services.AccountsService, jwtService jw
 		accountsService: accountsService,
 		jwtService:  jwtService,
 	}
+}
+
+// создание нового счёта
+func (a *AccountsHandler) CreateAccount(c *gin.Context) {
+	
 }

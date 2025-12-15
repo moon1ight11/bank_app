@@ -20,6 +20,5 @@ type User struct {
 	Email       string    `json:"email"`
 	PhoneNumber string    `json:"phone_number"`
 	Password    string    `json:"password"`
-	Timezone string    `json:"timezone"`
+	Timezone    string    `json:"timezone"`
 }
-
