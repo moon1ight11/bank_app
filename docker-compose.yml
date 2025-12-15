@@ -1,0 +1,11 @@
+services:
+  postgres:
+    image: postgres:17.5-alpine3.21
+    ports:
+      - 15432:5432
+    environment:
+      - POSTGRES_USER=fedor
+      - POSTGRES_PASSWORD=fedor_pass
+      - POSTGRES_DB=bank
+    volumes:
+      - "./temp_files/postgresql_data:/var/lib/postgresql/data"
