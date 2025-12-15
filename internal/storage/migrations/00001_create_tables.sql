@@ -12,6 +12,7 @@ CREATE TABLE
         surname VARCHAR NOT NULL,
         email VARCHAR UNIQUE NOT NULL,
         phone_number VARCHAR,
+        password VARCHAR,
         timezone VARCHAR DEFAULT 'UTC',
         created_at TIMESTAMPTZ DEFAULT now (),
         updated_at TIMESTAMPTZ
@@ -23,7 +24,7 @@ CREATE TABLE
     bank_app.accounts (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
         user_id UUID NOT NULL REFERENCES bank_app.users (id),
-        balance INTEGER DEFAULT 0,
+        balance NUMERIC(10,2) DEFAULT 0,
         currency bank_app.CURRENCIES NOT NULL DEFAULT 'RUB',
         created_at TIMESTAMPTZ DEFAULT now (),
         updated_at TIMESTAMPTZ
@@ -36,7 +37,7 @@ CREATE TABLE
         id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
         user_id UUID NOT NULL REFERENCES bank_app.users (id),
         account_id UUID NOT NULL REFERENCES bank_app.accounts(id),
-        type bank_app.OPERATION_TYPES NOT NULL,
+        operation_type bank_app.OPERATION_TYPES NOT NULL,
         amount INTEGER NOT NULL,
         timestamp TIMESTAMPTZ DEFAULT now()
     );

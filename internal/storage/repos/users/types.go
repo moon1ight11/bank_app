@@ -1,0 +1,25 @@
+package users
+
+import (
+	"bank_app/internal/storage"
+	"github.com/google/uuid"
+)
+
+type Repo struct {
+	storage.DataBase
+}
+
+func NewAccountsRepo(db *storage.DataBase) *Repo {
+	return &Repo{DataBase: *db}
+}
+
+type User struct {
+	ID          uuid.UUID `json:"user_id"`
+	Name        string    `json:"name"`
+	Surname     string    `json:"surname"`
+	Email       string    `json:"email"`
+	PhoneNumber string    `json:"phone_number"`
+	Password    string    `json:"password"`
+	Timezone string    `json:"timezone"`
+}
+
