@@ -20,11 +20,12 @@ func NewJWTService(secret string, expiration time.Duration) TokenService {
 }
 
 // создание токена
-func (j *Service) GenerateToken(user_id uuid.UUID, user_name string, user_email string) (string, error) {
+func (j *Service) GenerateToken(userID uuid.UUID, userName string, userSurname string, userEmail string) (string, error) {
 	claims := &Claims{
-		UserId:    user_id,
-		UserName:  user_name,
-		UserEmail: user_email,
+		UserId:    userID,
+		UserName:  userName,
+		UserSurname: userSurname,
+		UserEmail: userSurname,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.expiration)),
 		},

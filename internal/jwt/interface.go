@@ -6,6 +6,6 @@ import (
 )
 
 type TokenService interface {
-	GenerateToken(userId uuid.UUID, userName string, userEmail string) (string, error)
+	GenerateToken(userId uuid.UUID, userName string, userSurname string, userEmail string) (string, error)
 	ParseToken(token string, claims *Claims) (*jwt.Token, error)
 }

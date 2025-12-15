@@ -22,3 +22,56 @@ func (db *Repo) GetUserByID(userId uuid.UUID) (User, error) {
 
 	return user, nil
 }
+
+// получение данных о пользователе по email
+func (db *Repo) GetUserByEmail(userEmail string) (User, error) {
+	query := `
+				SELECT id, name, surname, email, phone_number, timezone
+				FROM bank_app.users
+				WHERE email = $1
+			`
+	var user User
+
+	err := db.DB.QueryRow(query, userEmail).Scan(&user.ID, &user.Name, &user.Surname, &user.Email, &user.PhoneNumber, &user.Timezone)
+	if err != nil {
+		return User{}, fmt.Errorf("Error in GetUserByEmail query: %w", err)
+	}
+
+	return user, nil
+}
+
+// проверка свободности почты
+func (db *Repo) CheckUserEmail(userEmail string) (bool, error) {
+	query := `
+				SELECT EXISTS(
+					SELECT 1
+					FROM bank_app.users
+					WHERE email = $1)
+			`
+	var exist bool
+
+	err := db.DB.QueryRow(query, userEmail).Scan(&exist)
+	if err != nil {
+		return false, fmt.Errorf("Error in CheckUserEmail query: %w", err)
+	}
+
+	return exist, nil
+}
+
+// проверка свободности номера телефона
+func (db *Repo) CheckUserPhoneNumber(phoneNumber string) (bool, error) {
+	query := `
+				SELECT EXISTS(
+					SELECT 1
+					FROM bank_app.users
+					WHERE phone_number = $1)
+			`
+	var exist bool
+
+	err := db.DB.QueryRow(query, phoneNumber).Scan(&exist)
+	if err != nil {
+		return false, fmt.Errorf("Error in CheckUserPhoneNumber query: %w", err)
+	}
+
+	return exist, nil
+}

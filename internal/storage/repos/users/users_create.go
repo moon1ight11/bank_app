@@ -6,14 +6,14 @@ import (
 )
 
 // создание пользователя
-func (db *Repo) CreateUser(NewUser User, password string) (uuid.UUID, error) {
+func (db *Repo) CreateUser(NewUser User) (uuid.UUID, error) {
 	query := `
 				INSERT INTO bank_app.users (name, surname, email, phone_number, password)
 				VALUES ($1, $2, $3, $4, $5)
 				RETURNING id
 			`
 	var userID uuid.UUID
-	err := db.DB.QueryRow(query, NewUser.Name, NewUser.Surname, NewUser.Email, NewUser.PhoneNumber, password).Scan(&userID)
+	err := db.DB.QueryRow(query, NewUser.Name, NewUser.Surname, NewUser.Email, NewUser.PhoneNumber, NewUser.Password).Scan(&userID)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("Error in CreateUser query: %w", err)
 	}

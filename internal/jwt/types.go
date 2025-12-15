@@ -2,15 +2,16 @@ package jwt
 
 import (
 	"fmt"
-	"regexp"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"regexp"
 )
 
 type Claims struct {
-	UserId uuid.UUID `json:"user_id"`
-	UserName  string `json:"user_name"`
-	UserEmail string `json:"user_email"`
+	UserId      uuid.UUID `json:"user_id"`
+	UserName    string    `json:"user_name"`
+	UserSurname string    `json:"user_surname"`
+	UserEmail   string    `json:"user_email"`
 	jwt.RegisteredClaims
 }
 
