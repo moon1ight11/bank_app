@@ -9,7 +9,7 @@ type Repo struct {
 	storage.DataBase
 }
 
-func NewAccountsRepo(db *storage.DataBase) *Repo {
+func NewUsersRepo(db *storage.DataBase) *Repo {
 	return &Repo{DataBase: *db}
 }
 

@@ -13,8 +13,11 @@ type AccountsService struct {
 	operationsRepo *operations.Repo
 }
 
-func NewAccountsService(accountsRepo *accounts.Repo) *AccountsService {
-	return &AccountsService{accountsRepo: accountsRepo}
+func NewAccountsService(accountsRepo *accounts.Repo, operationsRepo *operations.Repo) *AccountsService {
+	return &AccountsService{
+		accountsRepo:   accountsRepo,
+		operationsRepo: operationsRepo,
+	}
 }
 
 // создание счета
