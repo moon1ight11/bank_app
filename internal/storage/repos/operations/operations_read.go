@@ -68,3 +68,27 @@ func (db *Repo) GetOperationsByAccount(ownerID uuid.UUID, accountID uuid.UUID) (
 	}
 	return operations, nil
 }
+
+// получение одной операции
+func (db *Repo) GetOperationByID(operationID uuid.UUID, userID uuid.UUID) (Operation, error) {
+	query := `
+				SELECT id, user_id, account_id, operation_type, amount, timestamp
+				FROM bank_app.operations
+				WHERE user_id = $1 AND id = $2
+			`
+	var operation Operation
+
+	err := db.DB.QueryRow(query, userID, operationID).Scan(
+		&operation.ID,
+		&operation.OwnerID,
+		&operation.AccountID,
+		&operation.OperationType,
+		&operation.Amount,
+		&operation.Timestamp,
+	)
+	if err != nil {
+		return Operation{}, fmt.Errorf("error in GetOperationByID query: %w", err)
+	}
+
+	return operation, nil
+}

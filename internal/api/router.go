@@ -68,23 +68,25 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 
 	// СЧЕТА //
 	// создание нового счета
-	privateGroup.POST("/accounts")
+	privateGroup.POST("/accounts", r.accountsHandler.CreateAccount)
+	// список счетов пользвателя
+	privateGroup.GET("/accounts", r.accountsHandler.GetAllUserAccounts)
 	// получение информации о счете
-	privateGroup.GET("/accounts/:account_id")
+	privateGroup.GET("/accounts/:account_id", r.accountsHandler.GetAccountById)
 	// удаление счета
-	privateGroup.DELETE("/accounts/:account_id")
+	privateGroup.DELETE("/accounts/:account_id", r.accountsHandler.DeleteAccount)
 	// пополнение счета
-	privateGroup.PATCH("/accounts/incoming")
+	privateGroup.PATCH("/accounts/incoming/:account_id", r.accountsHandler.BalanceIncoming)
 	// списание со счета
-	privateGroup.PATCH("/accounts/outcoming")
+	privateGroup.PATCH("/accounts/outcoming/:account_id", r.accountsHandler.BalanceOutlay)
 	// перевод
-	privateGroup.PATCH("/accounts/transfer")
+	privateGroup.PATCH("/accounts/transfer/:account_id", r.accountsHandler.BalanceTransfer)
 
 	// ОПЕРАЦИИ //
 	// получение всех операций пользователя
-	privateGroup.GET("/operations")
+	privateGroup.GET("/operations", r.operationsHandler.GetAllUserOperations)
 	// получение операций по конкретному счёту
-	privateGroup.GET("/operations/:account_id")
+	privateGroup.GET("/operations/:account_id", r.operationsHandler.GetAllAccountOperations)
 	// информация о конкретной операции
-	privateGroup.GET("/operations/info/:operation_id")
+	privateGroup.GET("/operations/info/:operation_id", r.operationsHandler.GetOperationByID)
 }
