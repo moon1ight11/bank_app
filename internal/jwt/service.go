@@ -25,7 +25,7 @@ func (j *Service) GenerateToken(userID uuid.UUID, userName string, userSurname s
 		UserId:    userID,
 		UserName:  userName,
 		UserSurname: userSurname,
-		UserEmail: userSurname,
+		UserEmail: userEmail,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.expiration)),
 		},

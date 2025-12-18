@@ -20,6 +20,7 @@ type Operation struct {
 	OwnerID       uuid.UUID `json:"owner_id"`
 	AccountID     uuid.UUID `json:"account_id"`
 	OperationType string    `json:"type"`
-	Amount        float64       `json:"amount"`
+	Amount        float64   `json:"amount"`
+	Currency      string    `json:"currency"`
 	Timestamp     time.Time `json:"timestamp"`
 }

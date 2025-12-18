@@ -38,7 +38,8 @@ CREATE TABLE
         user_id UUID NOT NULL REFERENCES bank_app.users (id),
         account_id UUID NOT NULL REFERENCES bank_app.accounts(id),
         operation_type bank_app.OPERATION_TYPES NOT NULL,
-        amount INTEGER NOT NULL,
+        amount NUMERIC(10,2) NOT NULL,
+        currency bank_app.CURRENCIES NOT NULL,
         timestamp TIMESTAMPTZ DEFAULT now()
     );
 CREATE INDEX idx_operations_user_id ON bank_app.operations(user_id);

@@ -4,10 +4,12 @@ import (
 	"bank_app/internal/jwt"
 	"bank_app/internal/services"
 	"bank_app/internal/storage/repos/accounts"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"bank_app/internal/storage/repos/operations"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type AccountsHandler struct {
@@ -39,6 +41,13 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 	}
 
 	var NewAccount accounts.Account
+
+	// получаем валюту счета с фронта
+	if err := c.ShouldBindJSON(&NewAccount); err != nil {
+		log.Println("Error in ShouldBindJSON", err)
+		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
+		return
+	}
 
 	// устанавливаем владельцем счета пользователя
 	NewAccount.OwnerID = UserID
@@ -178,16 +187,20 @@ func (a *AccountsHandler) BalanceIncoming(c *gin.Context) {
 		return
 	}
 
-	// получаем с фронта сумму, на которую пополняется счет
-	var amount float64
-	if err := c.ShouldBindJSON(&amount); err != nil {
+	// получаем информацию о пополнении
+	var operation operations.Operation
+
+	operation.AccountID = accountID
+	operation.OwnerID = userID
+
+	if err := c.ShouldBindJSON(&operation); err != nil {
 		log.Println("Error in ShouldBindJSON", err)
 		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
 		return
 	}
 
 	// пополнение счёта + запись в операциях
-	err = a.accountsService.AccountIncoming(userID, accountID, amount)
+	err = a.accountsService.AccountIncoming(operation)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
@@ -222,16 +235,20 @@ func (a *AccountsHandler) BalanceOutlay(c *gin.Context) {
 		return
 	}
 
-	// получаем с фронта сумму, которая снимается
-	var amount float64
-	if err := c.ShouldBindJSON(&amount); err != nil {
+	// получаем информацию о списании
+	var operation operations.Operation
+
+	operation.AccountID = accountID
+	operation.OwnerID = userID
+
+	if err := c.ShouldBindJSON(&operation); err != nil {
 		log.Println("Error in ShouldBindJSON", err)
 		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
 		return
 	}
 
 	// снятие со счета + запись в операции
-	err = a.accountsService.AccountOutlay(userID, accountID, amount)
+	err = a.accountsService.AccountOutlay(operation)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
@@ -268,9 +285,10 @@ func (a *AccountsHandler) BalanceTransfer(c *gin.Context) {
 
 	// с фронта получаем id юзера и счета, на который переводим и сумму перевода
 	var transferTo struct {
-		userInID    uuid.UUID
-		accountInID uuid.UUID
-		amount      float64
+		UserInID    uuid.UUID `json:"recipient_id"`
+		AccountInID uuid.UUID `json:"account_id"`
+		Amount      float64   `json:"amount"`
+		Currency    string    `json:"currency"`
 	}
 
 	if err := c.ShouldBindJSON(&transferTo); err != nil {
@@ -279,8 +297,11 @@ func (a *AccountsHandler) BalanceTransfer(c *gin.Context) {
 		return
 	}
 
+	log.Println(transferTo)
+	log.Println(userOutID, accountOutID)
+
 	// выполняем трансфер
-	err = a.accountsService.AccountTransfer(transferTo.userInID, transferTo.accountInID, userOutID, accountOutID, transferTo.amount)
+	err = a.accountsService.AccountTransfer(transferTo.UserInID, transferTo.AccountInID, userOutID, accountOutID, transferTo.Amount, transferTo.Currency)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})

@@ -6,14 +6,14 @@ import (
 )
 
 // создание счета
-func (db *Repo) CreateAccount(ownerID uuid.UUID) (uuid.UUID, error) {
+func (db *Repo) CreateAccount(ownerID uuid.UUID, currency string) (uuid.UUID, error) {
 	query := `
-				INSERT INTO bank_app.accounts (user_id)
-				VALUES ($1)
+				INSERT INTO bank_app.accounts (user_id, currency)
+				VALUES ($1, $2)
 				RETURNING id
 			`
 	var accountID uuid.UUID
-	err := db.DB.QueryRow(query, ownerID).Scan(&accountID)
+	err := db.DB.QueryRow(query, ownerID, currency).Scan(&accountID)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("error in CreateAccount query: %w", err)
 	}

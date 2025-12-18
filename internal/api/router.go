@@ -58,7 +58,7 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 	// разлогин
 	authGroup.GET("/sign-out", r.authHandler.SignOut)
 
-	// ЮЗЕРЫ //
+	// ЮЗЕРЫ //	
 	// получение данных пользователя
 	privateGroup.GET("/users", r.usersHandler.GetUser)
 	// обновление пользователя

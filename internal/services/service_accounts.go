@@ -22,7 +22,7 @@ func NewAccountsService(accountsRepo *accounts.Repo, operationsRepo *operations.
 
 // создание счета
 func (a *AccountsService) AccountAdd(account accounts.Account) (uuid.UUID, error) {
-	AccountID, err := a.accountsRepo.CreateAccount(account.OwnerID)
+	AccountID, err := a.accountsRepo.CreateAccount(account.OwnerID, account.Currency)
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -64,7 +64,7 @@ func (a *AccountsService) AccountDelete(userID uuid.UUID, accountID uuid.UUID) e
 	}
 
 	// если денег нет - удаляем счет
-	err = a.accountsRepo.DeleteAccount(userID, accountID)
+	err = a.accountsRepo.DeleteAccount(accountID, userID)
 	if err != nil {
 		return err
 	}
@@ -73,9 +73,9 @@ func (a *AccountsService) AccountDelete(userID uuid.UUID, accountID uuid.UUID) e
 }
 
 // пополнение счета
-func (a *AccountsService) AccountIncoming(userID uuid.UUID, accountID uuid.UUID, amount float64) error {
+func (a *AccountsService) AccountIncoming(operation operations.Operation) error {
 	// получаем целевой аккаунт пополнения для проверки
-	_, err := a.accountsRepo.GetAccountById(accountID, userID)
+	_, err := a.accountsRepo.GetAccountById(operation.AccountID, operation.OwnerID)
 	if err != nil {
 		return err
 	}
@@ -90,13 +90,13 @@ func (a *AccountsService) AccountIncoming(userID uuid.UUID, accountID uuid.UUID,
 	defer transaction.Rollback()
 
 	// пополняем баланс
-	err = a.accountsRepo.BalanceIncoming(accountID, amount, transaction)
+	err = a.accountsRepo.BalanceIncoming(operation.AccountID, operation.Amount, transaction)
 	if err != nil {
 		return err
 	}
 
 	// запись в журнал операций
-	_, err = a.operationsRepo.CreateOperation(userID, accountID, amount, "incoming", transaction)
+	_, err = a.operationsRepo.CreateOperation(operation.OwnerID, operation.AccountID, operation.Amount, "incoming", operation.Currency, transaction)
 	if err != nil {
 		return err
 	}
@@ -107,15 +107,15 @@ func (a *AccountsService) AccountIncoming(userID uuid.UUID, accountID uuid.UUID,
 }
 
 // списание со счета
-func (a *AccountsService) AccountOutlay(userID uuid.UUID, accountID uuid.UUID, amount float64) error {
+func (a *AccountsService) AccountOutlay(operation operations.Operation) error {
 	// получаем целевой аккаунт списания для проверки
-	account, err := a.accountsRepo.GetAccountById(accountID, userID)
+	account, err := a.accountsRepo.GetAccountById(operation.AccountID, operation.OwnerID)
 	if err != nil {
 		return err
 	}
 
 	// проверяем, достаточно ли там денег
-	if account.Balance < amount {
+	if account.Balance < operation.Amount {
 		return fmt.Errorf("not enough funds")
 	}
 
@@ -129,13 +129,13 @@ func (a *AccountsService) AccountOutlay(userID uuid.UUID, accountID uuid.UUID, a
 	defer transaction.Rollback()
 
 	// списываем деньги
-	err = a.accountsRepo.BalanceOutlay(accountID, amount, transaction)
+	err = a.accountsRepo.BalanceOutlay(operation.AccountID, operation.Amount, transaction)
 	if err != nil {
 		return err
 	}
 
 	// запись в журнал операций
-	_, err = a.operationsRepo.CreateOperation(userID, accountID, amount, "outlay", transaction)
+	_, err = a.operationsRepo.CreateOperation(operation.OwnerID, operation.AccountID, operation.Amount, "outlay", operation.Currency, transaction)
 	if err != nil {
 		return err
 	}
@@ -152,6 +152,7 @@ func (a *AccountsService) AccountTransfer(
 	userOutID uuid.UUID,
 	accountOutID uuid.UUID,
 	amount float64,
+	currency string,
 ) error {
 	// получаем целевой аккаунт списания для проверки
 	accountOut, err := a.accountsRepo.GetAccountById(accountOutID, userOutID)
@@ -165,9 +166,14 @@ func (a *AccountsService) AccountTransfer(
 	}
 
 	// получаем целевой аккаунт пополнения для проверки
-	_, err = a.accountsRepo.GetAccountById(accountInID, userInID)
+	accountIn, err := a.accountsRepo.GetAccountById(accountInID, userInID)
 	if err != nil {
 		return err
+	}
+
+	// проверяем, совпадает ли валюта перевода с валютой целевого счета
+	if accountIn.Currency != currency {
+		return fmt.Errorf("currencies not match")
 	}
 
 	// если все ок - открываем транзакцию
@@ -186,7 +192,7 @@ func (a *AccountsService) AccountTransfer(
 	}
 
 	// запись в журнал операций
-	_, err = a.operationsRepo.CreateOperation(userOutID, accountOutID, amount, "outlay", transaction)
+	_, err = a.operationsRepo.CreateOperation(userOutID, accountOutID, amount, "outlay", currency, transaction)
 	if err != nil {
 		return err
 	}
@@ -198,7 +204,7 @@ func (a *AccountsService) AccountTransfer(
 	}
 
 	// запись в журнал операций
-	_, err = a.operationsRepo.CreateOperation(userInID, accountInID, amount, "incoming", transaction)
+	_, err = a.operationsRepo.CreateOperation(userInID, accountInID, amount, "incoming", currency, transaction)
 	if err != nil {
 		return err
 	}

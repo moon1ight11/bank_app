@@ -14,7 +14,7 @@ func (db *Repo) BalanceIncoming(accountID uuid.UUID, amount float64, tx *sql.Tx)
 				SET balance = balance + $2, updated_at = NOW()
 				WHERE id = $1
 			`
-	_, err := db.DB.Exec(query, accountID, amount)
+	_, err := tx.Exec(query, accountID, amount)
 	if err != nil {
 		return fmt.Errorf("error in BalanceIncoming query: %w", err)
 	}

@@ -8,9 +8,9 @@ import (
 // получение всех операций пользователя
 func (db *Repo) GetAllUsersOperations(ownerID uuid.UUID) ([]Operation, error) {
 	query := `
-				SELECT id, user_id, account_id, amount, operation_type, timestamp
-				FROM bank_app.accounts
-				WHERE owner_id = $1
+				SELECT id, user_id, account_id, amount, currency, operation_type, timestamp
+				FROM bank_app.operations
+				WHERE user_id = $1 
 			`
 	var operations []Operation
 	rows, err := db.DB.Query(query, ownerID)
@@ -26,6 +26,7 @@ func (db *Repo) GetAllUsersOperations(ownerID uuid.UUID) ([]Operation, error) {
 			&operation.OwnerID,
 			&operation.AccountID,
 			&operation.Amount,
+			&operation.Currency,
 			&operation.OperationType,
 			&operation.Timestamp,
 		)
@@ -40,9 +41,9 @@ func (db *Repo) GetAllUsersOperations(ownerID uuid.UUID) ([]Operation, error) {
 // получение операций конкретного счета
 func (db *Repo) GetOperationsByAccount(ownerID uuid.UUID, accountID uuid.UUID) ([]Operation, error) {
 	query := `
-				SELECT id, user_id, account_id, amount, operation_type, timestamp
-				FROM bank_app.accounts
-				WHERE owner_id = $1 AND account_id = $2
+				SELECT id, user_id, account_id, amount, currency, operation_type, timestamp
+				FROM bank_app.operations
+				WHERE user_id = $1 AND account_id = $2
 			`
 	var operations []Operation
 	rows, err := db.DB.Query(query, ownerID, accountID)
@@ -58,6 +59,7 @@ func (db *Repo) GetOperationsByAccount(ownerID uuid.UUID, accountID uuid.UUID) (
 			&operation.OwnerID,
 			&operation.AccountID,
 			&operation.Amount,
+			&operation.Currency,
 			&operation.OperationType,
 			&operation.Timestamp,
 		)
@@ -72,7 +74,7 @@ func (db *Repo) GetOperationsByAccount(ownerID uuid.UUID, accountID uuid.UUID) (
 // получение одной операции
 func (db *Repo) GetOperationByID(operationID uuid.UUID, userID uuid.UUID) (Operation, error) {
 	query := `
-				SELECT id, user_id, account_id, operation_type, amount, timestamp
+				SELECT id, user_id, account_id, operation_type, amount, currency, timestamp
 				FROM bank_app.operations
 				WHERE user_id = $1 AND id = $2
 			`
@@ -84,6 +86,7 @@ func (db *Repo) GetOperationByID(operationID uuid.UUID, userID uuid.UUID) (Opera
 		&operation.AccountID,
 		&operation.OperationType,
 		&operation.Amount,
+		&operation.Currency,
 		&operation.Timestamp,
 	)
 	if err != nil {

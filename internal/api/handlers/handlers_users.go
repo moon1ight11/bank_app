@@ -71,7 +71,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 		UserName     *string   `json:"name"`
 		UserSurname  *string   `json:"surname"`
 		UserPassword *string   `json:"password"`
-		UserNumber   *string   `json:"user_number"`
+		UserNumber   *string   `json:"phone_number"`
 		UserEmail    *string   `json:"email"`
 		Timezone     *string   `json:"timezone"`
 	}
@@ -141,8 +141,19 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 		}
 	}
 
+	// проверка уникальности новых почты и телефона
 	if UpdatedUser.UserEmail != nil || UpdatedUser.UserNumber != nil {
-		userCheck, err := u.userService.UserCheck(*UpdatedUser.UserNumber, *UpdatedUser.UserEmail)
+		var userNumber, userEmail string 
+
+		if UpdatedUser.UserNumber != nil {
+			userNumber = *UpdatedUser.UserNumber
+		}
+
+		if UpdatedUser.UserEmail != nil {
+			userEmail = *UpdatedUser.UserEmail
+		}
+
+		userCheck, err := u.userService.UserCheck(userNumber, userEmail)
 		if err != nil {
 			log.Println(err)
 			c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})

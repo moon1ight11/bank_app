@@ -17,8 +17,9 @@ type User struct {
 	ID          uuid.UUID `json:"user_id"`
 	Name        string    `json:"name"`
 	Surname     string    `json:"surname"`
-	Email       string    `json:"email"`
+	Email       string    `json:"email" binding:"required,email"`
 	PhoneNumber string    `json:"phone_number"`
 	Password    string    `json:"password"`
 	Timezone    string    `json:"timezone"`
 }
+ 

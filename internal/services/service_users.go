@@ -3,6 +3,7 @@ package services
 import (
 	"bank_app/internal/storage/repos/users"
 	"fmt"
+
 	"github.com/google/uuid"
 )
 
@@ -38,17 +39,21 @@ func (u *UsersService) UserCheck(phoneNumber string, userEmail string) (bool, er
 }
 
 // верификация пользователя
-func (u *UsersService) UserVerification(User users.User) (bool, error) {
+func (u *UsersService) UserVerification(User users.User) (users.User, error) {
 	foundUser, err := u.usersRepo.GetUserByEmail(User.Email)
 	if err != nil {
-		return false, err
+		return users.User{}, err
+	}
+
+	if foundUser.PhoneNumber != User.PhoneNumber {
+		return users.User{}, fmt.Errorf("wrong phone number")
 	}
 
 	if foundUser.Password != User.Password {
-		return false, fmt.Errorf("passwords not match")
+		return users.User{}, fmt.Errorf("passwords not match")
 	}
 
-	return true, nil
+	return foundUser, nil
 }
 
 // добавление пользователя

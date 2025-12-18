@@ -10,7 +10,7 @@ func (db *Repo) GetAccountById(accountID uuid.UUID, ownerID uuid.UUID) (Account,
 	query := `
 				SELECT id, user_id, balance, currency
 				FROM bank_app.accounts
-				WHERE owner_id = $1 AND id = $2
+				WHERE user_id = $1 AND id = $2
 			`
 	var account Account
 
@@ -27,7 +27,7 @@ func (db *Repo) GetAccountsByUserId(ownerID uuid.UUID) ([]Account, error) {
 	query := `
 				SELECT id, user_id, balance, currency
 				FROM bank_app.accounts
-				WHERE owner_id = $1
+				WHERE user_id = $1
 			`
 	var accounts []Account
 	rows, err := db.DB.Query(query, ownerID)
