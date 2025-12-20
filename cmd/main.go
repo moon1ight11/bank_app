@@ -8,7 +8,7 @@ import (
 	"bank_app/internal/services"
 	"bank_app/internal/storage"
 	"bank_app/internal/storage/repos/accounts"
-	"bank_app/internal/storage/repos/operations"
+	"bank_app/internal/storage/repos/transactions"
 	"bank_app/internal/storage/repos/users"
 	"log"
 )
@@ -37,19 +37,19 @@ func main() {
 
 	usersRepo := users.NewUsersRepo(db)
 	accountsRepo := accounts.NewAccountsRepo(db)
-	operationsRepo := operations.NewOperationsRepo(db)
+	transactionsRepo := transactions.NewTransactionsRepo(db)
 
 	usersService := services.NewUsersService(usersRepo)
-	accountsService := services.NewAccountsService(accountsRepo, operationsRepo)
-	operationsService := services.NewOperationsService(operationsRepo)
+	accountsService := services.NewAccountsService(accountsRepo, transactionsRepo)
+	transactionsService := services.NewTransactionsService(transactionsRepo)
 
 	authHandler := handlers.NewAuthHandler(usersService, jwtService)
 	usersHandler := handlers.NewUsersHandler(usersService, jwtService)
 	accountsHandler := handlers.NewAccountsHandler(accountsService, jwtService)
-	operationsHandler := handlers.NewOperationsHandler(operationsService, jwtService)
+	transactionsHandler := handlers.NewTransactionsHandler(transactionsService, jwtService)
 
 	// инициализация роутера
-	router := api.NewRouter(authHandler, usersHandler, accountsHandler, operationsHandler)
+	router := api.NewRouter(authHandler, usersHandler, accountsHandler, transactionsHandler)
 
 	// инициализация роутов
 	router.Init(jwtService)

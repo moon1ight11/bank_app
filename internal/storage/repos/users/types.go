@@ -21,5 +21,13 @@ type User struct {
 	PhoneNumber string    `json:"phone_number"`
 	Password    string    `json:"password"`
 	Timezone    string    `json:"timezone"`
+	Role        Role      `json:"roles"`
 }
- 
+
+type Role string
+
+const (
+	RoleUser        Role = "User"
+	RoleVerificator Role = "Verificator"
+	RoleAdmin       Role = "Admin"
+)

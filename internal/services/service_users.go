@@ -3,7 +3,6 @@ package services
 import (
 	"bank_app/internal/storage/repos/users"
 	"fmt"
-
 	"github.com/google/uuid"
 )
 

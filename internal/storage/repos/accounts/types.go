@@ -2,6 +2,8 @@ package accounts
 
 import (
 	"bank_app/internal/storage"
+	"bank_app/internal/storage/repos/transactions"
+
 	"github.com/google/uuid"
 )
 
@@ -14,8 +16,8 @@ func NewAccountsRepo(db *storage.DataBase) *Repo {
 }
 
 type Account struct {
-	ID       uuid.UUID `json:"account_id"`
-	OwnerID  uuid.UUID `json:"owner_id"`
-	Balance  float64   `json:"balance"`
-	Currency string    `json:"currency"`
+	ID       uuid.UUID             `json:"account_id"`
+	UserID   uuid.UUID             `json:"owner_id"`
+	Balance  int                   `json:"balance"`
+	Currency transactions.Currency `json:"currency"`
 }

@@ -11,7 +11,7 @@ type Router struct {
 	authHandler       *handlers.AuthHandler
 	usersHandler      *handlers.UsersHandler
 	accountsHandler   *handlers.AccountsHandler
-	operationsHandler *handlers.OperationsHandler
+	transactionsHandler *handlers.TransactionsHandler
 	ginEngine         *gin.Engine
 }
 
@@ -19,13 +19,13 @@ func NewRouter(
 	authHandler *handlers.AuthHandler,
 	usersHandler *handlers.UsersHandler,
 	accountsHandler *handlers.AccountsHandler,
-	operationsHandler *handlers.OperationsHandler,
+	transactionsHandler *handlers.TransactionsHandler,
 ) *Router {
 	return &Router{
 		authHandler:       authHandler,
 		usersHandler:      usersHandler,
 		accountsHandler:   accountsHandler,
-		operationsHandler: operationsHandler,
+		transactionsHandler: transactionsHandler,
 		ginEngine:         gin.Default(),
 	}
 }
@@ -48,7 +48,7 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 	authGroup := r.ginEngine.Group("/api/v1/auth")
 
 	// MIDDLEWARE для аутентификации //
-	privateGroup.Use(middleware.Auth(jwtService))
+	// privateGroup.Use(middleware.Auth(jwtService))
 
 	// АУТЕНТИФИКАЦИЯ //
 	// регистрация
@@ -75,18 +75,16 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 	privateGroup.GET("/accounts/:account_id", r.accountsHandler.GetAccountById)
 	// удаление счета
 	privateGroup.DELETE("/accounts/:account_id", r.accountsHandler.DeleteAccount)
-	// пополнение счета
-	privateGroup.PATCH("/accounts/incoming/:account_id", r.accountsHandler.BalanceIncoming)
-	// списание со счета
-	privateGroup.PATCH("/accounts/outcoming/:account_id", r.accountsHandler.BalanceOutlay)
-	// перевод
-	privateGroup.PATCH("/accounts/transfer/:account_id", r.accountsHandler.BalanceTransfer)
+	
+	// Админ-группа:
+	// api/v1/private/admin
+	// /accounts/transactions/ - POST. В теле - структрура с полем типа. 
 
-	// ОПЕРАЦИИ //
-	// получение всех операций пользователя
-	privateGroup.GET("/operations", r.operationsHandler.GetAllUserOperations)
-	// получение операций по конкретному счёту
-	privateGroup.GET("/operations/:account_id", r.operationsHandler.GetAllAccountOperations)
-	// информация о конкретной операции
-	privateGroup.GET("/operations/info/:operation_id", r.operationsHandler.GetOperationByID)
+	// ТРАНЗАКЦИИ //
+	// получение всех транзакций пользователя
+	privateGroup.GET("/transactions", r.transactionsHandler.GetAllAccountTransactions)
+	// получение транзакций по конкретному счёту
+	privateGroup.GET("/transactions/:account_id", r.transactionsHandler.GetAllAccountTransactions)
+	// информация о конкретной транзакции
+	privateGroup.GET("/transactions/info/:transaction_id", r.transactionsHandler.GetTransactionByID)
 }

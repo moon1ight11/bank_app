@@ -4,7 +4,6 @@ import (
 	"bank_app/internal/jwt"
 	"bank_app/internal/services"
 	"bank_app/internal/storage/repos/accounts"
-	"bank_app/internal/storage/repos/operations"
 	"log"
 	"net/http"
 
@@ -50,7 +49,7 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 	}
 
 	// устанавливаем владельцем счета пользователя
-	NewAccount.OwnerID = UserID
+	NewAccount.UserID = UserID
 
 	// создаем счет
 	_, err := a.accountsService.AccountAdd(NewAccount)
@@ -160,153 +159,4 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 	}
 
 	c.JSON((http.StatusOK), gin.H{"message": "successfull delete"})
-}
-
-// пополнение счета
-func (a *AccountsHandler) BalanceIncoming(c *gin.Context) {
-	// получаем id пользователя из контекста
-	userIDValue, exist := c.Get("UserId")
-	if !exist {
-		c.JSON(http.StatusForbidden, gin.H{"error": "User ID not found"})
-		return
-	}
-
-	// приводим значение к uuid
-	userID, ok := userIDValue.(uuid.UUID)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID type"})
-		return
-	}
-
-	// из параметров получаем id счета, который пополняется
-	idStr := c.Param("account_id")
-	accountID, err := uuid.Parse(idStr)
-	if err != nil {
-		log.Println("Error in parse uuid", err)
-		c.JSON((http.StatusBadRequest), gin.H{"error": "Error in parse uuid"})
-		return
-	}
-
-	// получаем информацию о пополнении
-	var operation operations.Operation
-
-	operation.AccountID = accountID
-	operation.OwnerID = userID
-
-	if err := c.ShouldBindJSON(&operation); err != nil {
-		log.Println("Error in ShouldBindJSON", err)
-		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
-		return
-	}
-
-	// пополнение счёта + запись в операциях
-	err = a.accountsService.AccountIncoming(operation)
-	if err != nil {
-		log.Println(err)
-		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON((http.StatusOK), gin.H{"message": "successfull incoming"})
-}
-
-// списание со счета
-func (a *AccountsHandler) BalanceOutlay(c *gin.Context) {
-	// получаем id пользователя из контекста
-	userIDValue, exist := c.Get("UserId")
-	if !exist {
-		c.JSON(http.StatusForbidden, gin.H{"error": "User ID not found"})
-		return
-	}
-
-	// приводим значение к uuid
-	userID, ok := userIDValue.(uuid.UUID)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID type"})
-		return
-	}
-
-	// из параметров получаем id счета, с которого снимаем
-	idStr := c.Param("account_id")
-	accountID, err := uuid.Parse(idStr)
-	if err != nil {
-		log.Println("Error in parse uuid", err)
-		c.JSON((http.StatusBadRequest), gin.H{"error": "Error in parse uuid"})
-		return
-	}
-
-	// получаем информацию о списании
-	var operation operations.Operation
-
-	operation.AccountID = accountID
-	operation.OwnerID = userID
-
-	if err := c.ShouldBindJSON(&operation); err != nil {
-		log.Println("Error in ShouldBindJSON", err)
-		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
-		return
-	}
-
-	// снятие со счета + запись в операции
-	err = a.accountsService.AccountOutlay(operation)
-	if err != nil {
-		log.Println(err)
-		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON((http.StatusOK), gin.H{"message": "successfull outlay"})
-}
-
-// перевод
-func (a *AccountsHandler) BalanceTransfer(c *gin.Context) {
-	// получаем id пользователя из контекста
-	userIDValue, exist := c.Get("UserId")
-	if !exist {
-		c.JSON(http.StatusForbidden, gin.H{"error": "User ID not found"})
-		return
-	}
-
-	// приводим значение к uuid
-	userOutID, ok := userIDValue.(uuid.UUID)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID type"})
-		return
-	}
-
-	// из параметров получаем id счета, с которого снимаем
-	idStr := c.Param("account_id")
-	accountOutID, err := uuid.Parse(idStr)
-	if err != nil {
-		log.Println("Error in parse uuid", err)
-		c.JSON((http.StatusBadRequest), gin.H{"error": "Error in parse uuid"})
-		return
-	}
-
-	// с фронта получаем id юзера и счета, на который переводим и сумму перевода
-	var transferTo struct {
-		UserInID    uuid.UUID `json:"recipient_id"`
-		AccountInID uuid.UUID `json:"account_id"`
-		Amount      float64   `json:"amount"`
-		Currency    string    `json:"currency"`
-	}
-
-	if err := c.ShouldBindJSON(&transferTo); err != nil {
-		log.Println("Error in ShouldBindJSON", err)
-		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
-		return
-	}
-
-	log.Println(transferTo)
-	log.Println(userOutID, accountOutID)
-
-	// выполняем трансфер
-	err = a.accountsService.AccountTransfer(transferTo.UserInID, transferTo.AccountInID, userOutID, accountOutID, transferTo.Amount, transferTo.Currency)
-	if err != nil {
-		log.Println(err)
-		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON((http.StatusOK), gin.H{"message": "successfull transfer"})
 }

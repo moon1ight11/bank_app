@@ -5,25 +5,24 @@ import (
 	"bank_app/internal/services"
 	"log"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-type OperationsHandler struct {
-	operationsService *services.OperationsService
+type TransactionsHandler struct {
+	transactionsService *services.TransactionsService
 	jwtService        jwt.TokenService
 }
 
-func NewOperationsHandler(operationsService *services.OperationsService, jwtService jwt.TokenService) *OperationsHandler {
-	return &OperationsHandler{
-		operationsService: operationsService,
+func NewTransactionsHandler(transactionsService *services.TransactionsService, jwtService jwt.TokenService) *TransactionsHandler {
+	return &TransactionsHandler{
+		transactionsService: transactionsService,
 		jwtService:        jwtService,
 	}
 }
 
-// получение всех операций пользователя
-func (o *OperationsHandler) GetAllUserOperations(c *gin.Context) {
+// получение всех транзакций пользователя
+func (t *TransactionsHandler) GetAllUserTransactions(c *gin.Context) {
 	// получаем id пользователя из контекста
 	userIDValue, exist := c.Get("UserId")
 	if !exist {
@@ -38,18 +37,18 @@ func (o *OperationsHandler) GetAllUserOperations(c *gin.Context) {
 		return
 	}
 
-	operations, err := o.operationsService.AllOperationsGet(userID)
+	transactions, err := t.transactionsService.AllTransactionsGet(userID)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON((http.StatusOK), gin.H{"operations": operations})
+	c.JSON((http.StatusOK), gin.H{"transactions": transactions})
 }
 
-// получение всех операций конкретного счета
-func (o *OperationsHandler) GetAllAccountOperations(c *gin.Context) {
+// получение всех транзакций конкретного счета
+func (t *TransactionsHandler) GetAllAccountTransactions(c *gin.Context) {
 	// получаем id пользователя из контекста
 	userIDValue, exist := c.Get("UserId")
 	if !exist {
@@ -73,18 +72,18 @@ func (o *OperationsHandler) GetAllAccountOperations(c *gin.Context) {
 		return
 	}
 
-	operations, err := o.operationsService.AccountOperationsGet(userID, accountID)
+	transactions, err := t.transactionsService.AccountTransactionsGet(userID, accountID)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON((http.StatusOK), gin.H{"operations": operations})
+	c.JSON((http.StatusOK), gin.H{"transactions": transactions})
 }
 
-// информация о конкретной операции
-func (o *OperationsHandler) GetOperationByID(c *gin.Context) {
+// информация о конкретной транзакции
+func (t *TransactionsHandler) GetTransactionByID(c *gin.Context) {
 	// получаем id пользователя из контекста
 	userIDValue, exist := c.Get("UserId")
 	if !exist {
@@ -99,21 +98,21 @@ func (o *OperationsHandler) GetOperationByID(c *gin.Context) {
 		return
 	}
 
-	// получаем id операции из параметров
-	idStr := c.Param("operation_id")
-	operationID, err := uuid.Parse(idStr)
+	// получаем id транзакции из параметров
+	idStr := c.Param("transaction_id")
+	transactionID, err := uuid.Parse(idStr)
 	if err != nil {
 		log.Println("Error in parse uuid", err)
 		c.JSON((http.StatusBadRequest), gin.H{"error": "Error in parse uuid"})
 		return
 	}
 
-	operation, err := o.operationsService.OperationByIdGet(userID, operationID)
+	transaction, err := t.transactionsService.TransactionByIdGet(userID, transactionID)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON((http.StatusOK), gin.H{"operation": operation})
+	c.JSON((http.StatusOK), gin.H{"transaction": transaction})
 }

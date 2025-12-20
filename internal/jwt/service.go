@@ -2,9 +2,11 @@ package jwt
 
 import (
 	"errors"
-	"time"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"time"
+	"fmt"
+	"regexp"
 )
 
 type Service struct {
@@ -19,13 +21,43 @@ func NewJWTService(secret string, expiration time.Duration) TokenService {
 	}
 }
 
+// валидация кастомных полей клеймов
+func (c *Claims) CustomFieldsValidate() error {
+	// проверяем валидность uuid
+	if c.UserId == uuid.Nil {
+		return fmt.Errorf("user id is empty")
+	}
+
+	// проверяем, что имя пользователя не пустое
+	if c.UserName == "" {
+		return fmt.Errorf("invalid user name")
+	}
+
+	// проверяем что фамилия пользователя не пустая
+	if c.UserSurname == "" {
+		return fmt.Errorf("invalid user surname")
+	}
+
+	// проверяем валидность почты
+	pattern := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
+	matched, err := regexp.MatchString(pattern, c.UserEmail)
+	if err != nil {
+		return fmt.Errorf("error in matchString: %w", err)
+	}
+	if !matched {
+		return fmt.Errorf("user email not looks like email")
+	}
+
+	return nil
+}
+
 // создание токена
 func (j *Service) GenerateToken(userID uuid.UUID, userName string, userSurname string, userEmail string) (string, error) {
 	claims := &Claims{
-		UserId:    userID,
-		UserName:  userName,
+		UserId:      userID,
+		UserName:    userName,
 		UserSurname: userSurname,
-		UserEmail: userEmail,
+		UserEmail:   userEmail,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.expiration)),
 		},
