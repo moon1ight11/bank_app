@@ -3,6 +3,7 @@ package handlers
 import (
 	"bank_app/internal/jwt"
 	"bank_app/internal/services"
+	"bank_app/internal/storage/repos/users"
 	"log"
 	"net/http"
 	"regexp"
@@ -142,7 +143,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 
 	// проверка уникальности новых почты и телефона
 	if UpdatedUser.UserEmail != nil || UpdatedUser.UserNumber != nil {
-		var userNumber, userEmail string 
+		var userNumber, userEmail string
 
 		if UpdatedUser.UserNumber != nil {
 			userNumber = *UpdatedUser.UserNumber
@@ -219,4 +220,72 @@ func (u *UsersHandler) DeleteUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "delete is complete"})
+}
+
+// создание верификатора
+func (u *UsersHandler) CreateVerificator(c *gin.Context) {
+	// получаем с фронта верификатора
+	var verificator users.User
+	if err := c.ShouldBindJSON(&verificator); err != nil {
+		log.Println("Error in ShouldBindJSON", err)
+		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
+		return
+	}
+
+	verificator.Role = users.RoleVerificator
+
+	verificatorID, err := u.userService.VerificatorCreate(verificator)
+	if err != nil {
+		log.Println(err)
+		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"verificatorID": verificatorID})
+}
+
+// создание админа
+func (u *UsersHandler) CreateAdmin(c *gin.Context) {
+	// получаем с фронта админа
+	var admin users.User
+	if err := c.ShouldBindJSON(&admin); err != nil {
+		log.Println("Error in ShouldBindJSON", err)
+		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
+		return
+	}
+
+	admin.Role = users.RoleAdmin
+
+	adminID, err := u.userService.VerificatorCreate(admin)
+	if err != nil {
+		log.Println(err)
+		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"adminID": adminID})
+}
+
+// список админов
+func (u *UsersHandler) GetAdmins(c *gin.Context) {
+	admins, err := u.userService.AdminsGet()
+	if err != nil {
+		log.Println(err)
+		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"admins": admins})
+}
+
+// список верификаторов
+func (u *UsersHandler) GetVerificators(c *gin.Context) {
+	verificators, err := u.userService.VerificatorsGet()
+	if err != nil {
+		log.Println(err)
+		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"verificators": verificators})
 }

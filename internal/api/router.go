@@ -8,11 +8,11 @@ import (
 )
 
 type Router struct {
-	authHandler       *handlers.AuthHandler
-	usersHandler      *handlers.UsersHandler
-	accountsHandler   *handlers.AccountsHandler
+	authHandler         *handlers.AuthHandler
+	usersHandler        *handlers.UsersHandler
+	accountsHandler     *handlers.AccountsHandler
 	transactionsHandler *handlers.TransactionsHandler
-	ginEngine         *gin.Engine
+	ginEngine           *gin.Engine
 }
 
 func NewRouter(
@@ -22,11 +22,11 @@ func NewRouter(
 	transactionsHandler *handlers.TransactionsHandler,
 ) *Router {
 	return &Router{
-		authHandler:       authHandler,
-		usersHandler:      usersHandler,
-		accountsHandler:   accountsHandler,
+		authHandler:         authHandler,
+		usersHandler:        usersHandler,
+		accountsHandler:     accountsHandler,
 		transactionsHandler: transactionsHandler,
-		ginEngine:         gin.Default(),
+		ginEngine:           gin.Default(),
 	}
 }
 
@@ -40,15 +40,24 @@ func (r *Router) Run() error {
 }
 
 func (r *Router) Init(jwtService jwt.TokenService) {
-	// MIDDLEWARE для корсов
+	// MIDDLEWARE для CORS
 	r.ginEngine.Use(middleware.CORS())
 
 	// группировка роутов
-	privateGroup := r.ginEngine.Group("/api/v1/private")
 	authGroup := r.ginEngine.Group("/api/v1/auth")
+	userGroup := r.ginEngine.Group("/api/v1/user")
+	verificatorGroup := r.ginEngine.Group("/api/v1/verificator")
+	adminGroup := r.ginEngine.Group("/api/v1/admin")
 
-	// MIDDLEWARE для аутентификации //
-	// privateGroup.Use(middleware.Auth(jwtService))
+	// MIDDLEWARE для общей аутентификации
+	userGroup.Use(middleware.Auth(jwtService))
+	verificatorGroup.Use(middleware.Auth(jwtService))
+	adminGroup.Use(middleware.Auth(jwtService))
+
+	// MIDDLEWARE для проверки ролей
+	userGroup.Use(middleware.AuthUser())
+	verificatorGroup.Use(middleware.AuthVerificator())
+	adminGroup.Use(middleware.AuthAdmin())
 
 	// АУТЕНТИФИКАЦИЯ //
 	// регистрация
@@ -58,33 +67,43 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 	// разлогин
 	authGroup.GET("/sign-out", r.authHandler.SignOut)
 
-	// ЮЗЕРЫ //	
+	// ЮЗЕР // --- любые верифицированные пользователи
 	// получение данных пользователя
-	privateGroup.GET("/users", r.usersHandler.GetUser)
+	userGroup.GET("/profile", r.usersHandler.GetUser)
 	// обновление пользователя
-	privateGroup.PATCH("/users", r.usersHandler.UpdateUser)
+	userGroup.PATCH("/profile", r.usersHandler.UpdateUser)
 	// удаление пользователя
-	privateGroup.DELETE("/users", r.usersHandler.DeleteUser)
-
-	// СЧЕТА //
+	userGroup.DELETE("/profile", r.usersHandler.DeleteUser)
 	// создание нового счета
-	privateGroup.POST("/accounts", r.accountsHandler.CreateAccount)
+	userGroup.POST("/accounts", r.accountsHandler.CreateAccount)
 	// список счетов пользвателя
-	privateGroup.GET("/accounts", r.accountsHandler.GetAllUserAccounts)
+	userGroup.GET("/accounts", r.accountsHandler.GetAllUserAccounts)
 	// получение информации о счете
-	privateGroup.GET("/accounts/:account_id", r.accountsHandler.GetAccountById)
+	userGroup.GET("/accounts/:account_id", r.accountsHandler.GetAccountById)
 	// удаление счета
-	privateGroup.DELETE("/accounts/:account_id", r.accountsHandler.DeleteAccount)
-	
-	// Админ-группа:
-	// api/v1/private/admin
-	// /accounts/transactions/ - POST. В теле - структрура с полем типа. 
-
-	// ТРАНЗАКЦИИ //
+	userGroup.DELETE("/accounts/:account_id", r.accountsHandler.DeleteAccount)
+	// получение транзакций по счёту
+	userGroup.GET("/accounts/:account_id/transactions", r.transactionsHandler.GetAllAccountTransactions)
 	// получение всех транзакций пользователя
-	privateGroup.GET("/transactions", r.transactionsHandler.GetAllAccountTransactions)
-	// получение транзакций по конкретному счёту
-	privateGroup.GET("/transactions/:account_id", r.transactionsHandler.GetAllAccountTransactions)
+	userGroup.GET("/transactions", r.transactionsHandler.GetAllAccountTransactions)
 	// информация о конкретной транзакции
-	privateGroup.GET("/transactions/info/:transaction_id", r.transactionsHandler.GetTransactionByID)
+	userGroup.GET("/transactions/:transaction_id", r.transactionsHandler.GetTransactionByID)
+	// перевод внутри системы
+	userGroup.POST("/transactions/transfer", r.transactionsHandler.CreateTransferTransaction) /// --- для админов и верификаторов недоступно
+
+	// ВЕРИФИКАТОР // --- только верификаторы и админы
+	// пополнение счета
+	verificatorGroup.POST("/accounts/transactions/income", r.transactionsHandler.CreateIncomingTransaction)
+	// списание со счета
+	verificatorGroup.POST("/accounts/transactions/outcome", r.transactionsHandler.CreateOutcomingTransaction)
+
+	// АДМИН // --- только админы
+	// создание админа
+	adminGroup.POST("/users/create-admin", r.usersHandler.CreateAdmin)
+	// создание верификатора
+	adminGroup.POST("/users/create-verificator", r.usersHandler.CreateVerificator)
+	// список админов
+	adminGroup.GET("/users/admins", r.usersHandler.GetAdmins)
+	// список верификаторов
+	adminGroup.GET("/users/verificators", r.usersHandler.GetVerificators)
 }

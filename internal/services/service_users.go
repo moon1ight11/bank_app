@@ -141,7 +141,7 @@ func (u *UsersService) UserUpdate(
 	return nil
 }
 
-// удаление пользователя 
+// удаление пользователя
 func (u *UsersService) UserDelete(userID uuid.UUID) error {
 	err := u.usersRepo.DeleteUser(userID)
 	if err != nil {
@@ -149,4 +149,44 @@ func (u *UsersService) UserDelete(userID uuid.UUID) error {
 	}
 
 	return nil
+}
+
+// создание верификатора
+func (u *UsersService) VerificatorCreate(verificator users.User) (uuid.UUID, error) {
+	verificatorID, err := u.usersRepo.CreateVerificator(verificator)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return verificatorID, nil
+}
+
+// создание админа
+func (u *UsersService) AdminCreate(admin users.User) (uuid.UUID, error) {
+	adminID, err := u.usersRepo.CreateAdmin(admin)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return adminID, nil
+}
+
+// список админов
+func (u *UsersService) AdminsGet() ([]users.User, error) {
+	admins, err := u.usersRepo.GetUsersByRole(users.RoleAdmin)
+	if err != nil {
+		return nil, err
+	}
+
+	return admins, nil
+}
+
+// список верификаторов
+func (u *UsersService) VerificatorsGet() ([]users.User, error) {
+	verificators, err := u.usersRepo.GetUsersByRole(users.RoleVerificator)
+	if err != nil {
+		return nil, err
+	}
+
+	return verificators, nil
 }

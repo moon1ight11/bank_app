@@ -9,8 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// аус-мидлвар для юзера
-func AuthUser(jwtService jwt.TokenService) gin.HandlerFunc {
+// аус-мидлвар для всех
+func Auth(jwtService jwt.TokenService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer c.Next()
 
@@ -39,95 +39,73 @@ func AuthUser(jwtService jwt.TokenService) gin.HandlerFunc {
 			return
 		}
 
-		if claims.Roles != users.RoleUser {
+		c.Set("UserId", claims.UserId)
+		c.Set("UserRole", claims.Roles)
+	}
+}
+
+// role-check для юзера и выше
+func AuthUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer c.Next()
+
+		UserRole, exist := c.Get("UserRole")
+		if !exist {
+			log.Println("Error in get User role")
+			c.JSON((http.StatusForbidden), gin.H{"error": "User role not found"})
+			c.Abort()
+			return
+		}
+
+		if UserRole != users.RoleUser && UserRole != users.RoleVerificator && UserRole != users.RoleAdmin{
 			log.Println("Access violation: you are not 'User'")
 			c.JSON(http.StatusForbidden, gin.H{"error": "Access violation"})
 			c.Abort()
 			return
 		}
-
-		c.Set("UserId", claims.UserId)
 	}
 }
 
-// аус-мидлвар для верификатора
-func AuthVerificator(jwtService jwt.TokenService) gin.HandlerFunc {
+// role-check для верификатора и выше
+func AuthVerificator() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer c.Next()
 
-		value, err := c.Cookie("cookie")
-		if err != nil {
-			log.Println("Error in get value from cookie")
-			c.JSON((http.StatusForbidden), gin.H{"error": err.Error()})
+		UserRole, exist := c.Get("UserRole")
+		if !exist {
+			log.Println("Error in get User role")
+			c.JSON((http.StatusForbidden), gin.H{"error": "User role not found"})
 			c.Abort()
 			return
 		}
 
-		claims := jwt.Claims{}
-
-		token, err := jwtService.ParseToken(value, &claims)
-		if err != nil {
-			log.Println("Error in parse token", err)
-			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
-			c.Abort()
-			return
-		}
-
-		if !token.Valid {
-			log.Println("Token not valid")
-			c.JSON(http.StatusForbidden, gin.H{"error": "Token not valid"})
-			c.Abort()
-			return
-		}
-
-		if claims.Roles != users.RoleVerificator {
-			log.Println("Access violation: you are not 'Verificator'")
+		if UserRole != users.RoleVerificator && UserRole != users.RoleAdmin {
+			log.Println("Access violation: you are not 'Verificator' or 'Admin")
 			c.JSON(http.StatusForbidden, gin.H{"error": "Access violation"})
 			c.Abort()
 			return
 		}
-
-		c.Set("UserId", claims.UserId)
 	}
 }
 
-// аус-мидлвар для админа
-func AuthAdmin(jwtService jwt.TokenService) gin.HandlerFunc {
+// role-check для админа
+func AuthAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer c.Next()
 
-		value, err := c.Cookie("cookie")
-		if err != nil {
-			log.Println("Error in get value from cookie")
-			c.JSON((http.StatusForbidden), gin.H{"error": err.Error()})
+		UserRole, exist := c.Get("UserRole")
+		if !exist {
+			log.Println("Error in get User role")
+			c.JSON((http.StatusForbidden), gin.H{"error": "User role not found"})
 			c.Abort()
 			return
 		}
 
-		claims := jwt.Claims{}
-
-		token, err := jwtService.ParseToken(value, &claims)
-		if err != nil {
-			log.Println("Error in parse token", err)
-			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
-			c.Abort()
-			return
-		}
-
-		if !token.Valid {
-			log.Println("Token not valid")
-			c.JSON(http.StatusForbidden, gin.H{"error": "Token not valid"})
-			c.Abort()
-			return
-		}
-
-		if claims.Roles != users.RoleAdmin {
+		if UserRole != users.RoleAdmin {
 			log.Println("Access violation: you are not 'Admin'")
 			c.JSON(http.StatusForbidden, gin.H{"error": "Access violation"})
 			c.Abort()
 			return
 		}
-
-		c.Set("UserId", claims.UserId)
 	}
 }

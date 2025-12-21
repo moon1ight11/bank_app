@@ -7,7 +7,7 @@ import (
 )
 
 // пополнение на счет
-func (db *Repo) BalanceIncoming(accountID uuid.UUID, amount float64, tx *sql.Tx) error {
+func (db *Repo) BalanceIncoming(accountID uuid.UUID, amount int, tx *sql.Tx) error {
 	query := `
 				UPDATE bank_app.accounts
 				SET balance = balance + $2, updated_at = NOW()
@@ -22,7 +22,7 @@ func (db *Repo) BalanceIncoming(accountID uuid.UUID, amount float64, tx *sql.Tx)
 }
 
 // списание со счета
-func (db *Repo) BalanceOutlay(accountID uuid.UUID, amount float64, tx *sql.Tx) error {
+func (db *Repo) BalanceOutcoming(accountID uuid.UUID, amount int, tx *sql.Tx) error {
 	query := `
 				UPDATE bank_app.accounts
 				SET balance = balance - $2, updated_at = NOW()

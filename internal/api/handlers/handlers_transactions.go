@@ -3,21 +3,24 @@ package handlers
 import (
 	"bank_app/internal/jwt"
 	"bank_app/internal/services"
+	"bank_app/internal/storage/repos/transactions"
+	"bank_app/internal/storage/repos/users"
 	"log"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type TransactionsHandler struct {
 	transactionsService *services.TransactionsService
-	jwtService        jwt.TokenService
+	jwtService          jwt.TokenService
 }
 
 func NewTransactionsHandler(transactionsService *services.TransactionsService, jwtService jwt.TokenService) *TransactionsHandler {
 	return &TransactionsHandler{
 		transactionsService: transactionsService,
-		jwtService:        jwtService,
+		jwtService:          jwtService,
 	}
 }
 
@@ -115,4 +118,77 @@ func (t *TransactionsHandler) GetTransactionByID(c *gin.Context) {
 	}
 
 	c.JSON((http.StatusOK), gin.H{"transaction": transaction})
+}
+
+// пополнение счета
+func (t *TransactionsHandler) CreateIncomingTransaction(c *gin.Context) {
+	// получаем с фронта тело транзакции
+	var transaction transactions.Transaction
+	if err := c.ShouldBindJSON(&transaction); err != nil {
+		log.Println("Error in ShouldBindJSON", err)
+		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
+		return
+	}
+
+	transactionID, err := t.transactionsService.TransactionIncoming(transaction)
+	if err != nil {
+		log.Println(err)
+		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON((http.StatusOK), gin.H{"transactionID": transactionID})
+}
+
+// списание со счета
+func (t *TransactionsHandler) CreateOutcomingTransaction(c *gin.Context) {
+	// получаем с фронта тело транзакции
+	var transaction transactions.Transaction
+	if err := c.ShouldBindJSON(&transaction); err != nil {
+		log.Println("Error in ShouldBindJSON", err)
+		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
+		return
+	}
+
+	transactionID, err := t.transactionsService.TransactionOutcoming(transaction)
+	if err != nil {
+		log.Println(err)
+		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON((http.StatusOK), gin.H{"transactionID": transactionID})
+}
+
+// трансфер
+func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
+	// получаем роль пользователя из контекста
+	userRole, exist := c.Get("UserRole")
+	if !exist {
+		c.JSON(http.StatusForbidden, gin.H{"error": "User role not found"})
+		return
+	}
+
+	// запрещаем делать транзакции админам и верификаторам
+	if userRole != users.RoleUser {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Admin and Verificator cant make transfer"})
+		return
+	}
+
+	// получаем с фронта тело транзакции
+	var transaction transactions.Transaction
+	if err := c.ShouldBindJSON(&transaction); err != nil {
+		log.Println("Error in ShouldBindJSON", err)
+		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
+		return
+	}
+
+	transactionID, err := t.transactionsService.TransactionTransfer(transaction)
+	if err != nil {
+		log.Println(err)
+		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON((http.StatusOK), gin.H{"transactionID": transactionID})
 }

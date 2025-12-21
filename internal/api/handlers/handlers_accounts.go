@@ -6,7 +6,6 @@ import (
 	"bank_app/internal/storage/repos/accounts"
 	"log"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )

@@ -41,7 +41,7 @@ func main() {
 
 	usersService := services.NewUsersService(usersRepo)
 	accountsService := services.NewAccountsService(accountsRepo, transactionsRepo)
-	transactionsService := services.NewTransactionsService(transactionsRepo)
+	transactionsService := services.NewTransactionsService(transactionsRepo, accountsRepo)
 
 	authHandler := handlers.NewAuthHandler(usersService, jwtService)
 	usersHandler := handlers.NewUsersHandler(usersService, jwtService)

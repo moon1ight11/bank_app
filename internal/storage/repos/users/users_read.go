@@ -2,7 +2,6 @@ package users
 
 import (
 	"fmt"
-
 	"github.com/google/uuid"
 )
 
@@ -74,4 +73,35 @@ func (db *Repo) CheckUserPhoneNumber(phoneNumber string) (bool, error) {
 	}
 
 	return exist, nil
+}
+
+// список пользователей с заданной ролью
+func (db *Repo) GetUsersByRole(role Role) ([]User, error) {
+	query := `
+				SELECT id, name, surname, email, timezone
+				FROM bank_app.users
+				WHERE role = $1
+			`
+	var users []User
+	rows, err := db.DB.Query(query, role)
+	if err != nil {
+		return nil, fmt.Errorf("error in GetUsersByRole query: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user User
+		err := rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Surname,
+			&user.Email,
+			&user.Timezone,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error in GetUsersByRole scan: %w", err)
+		}
+		users = append(users, user)
+	}
+	return users, nil
 }
