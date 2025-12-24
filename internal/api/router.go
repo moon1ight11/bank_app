@@ -85,7 +85,7 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 	// получение транзакций по счёту
 	userGroup.GET("/accounts/:account_id/transactions", r.transactionsHandler.GetAllAccountTransactions)
 	// получение всех транзакций пользователя
-	userGroup.GET("/transactions", r.transactionsHandler.GetAllAccountTransactions)
+	userGroup.GET("/transactions", r.transactionsHandler.GetAllUserTransactions)
 	// информация о конкретной транзакции
 	userGroup.GET("/transactions/:transaction_id", r.transactionsHandler.GetTransactionByID)
 	// перевод внутри системы

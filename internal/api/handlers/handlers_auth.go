@@ -82,6 +82,9 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 		return
 	}
 
+	// применяем роль по умолчанию
+	User.Role = users.RoleUser
+
 	// добавляем пользователя в БД
 	userID, err := u.userService.UserAdd(User)
 	if err != nil {
@@ -91,7 +94,7 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 	}
 
 	// генерируем токен для нового пользователя
-	token, err := u.jwtService.GenerateToken(userID, User.Name, User.Surname, User.Email)
+	token, err := u.jwtService.GenerateToken(userID, User.Name, User.Surname, User.Email, User.Role)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
@@ -144,7 +147,7 @@ func (u *AuthHandler) SignIn(c *gin.Context) {
 	}
 
 	// генерируем токен для найденного пользователя
-	token, err := u.jwtService.GenerateToken(foundUser.ID, foundUser.Name, foundUser.Surname, foundUser.Email)
+	token, err := u.jwtService.GenerateToken(foundUser.ID, foundUser.Name, foundUser.Surname, foundUser.Email, foundUser.Role)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})

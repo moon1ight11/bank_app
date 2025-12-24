@@ -162,6 +162,20 @@ func (t *TransactionsHandler) CreateOutcomingTransaction(c *gin.Context) {
 
 // трансфер
 func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
+	// получаем id пользователя из контекста
+	userIDValue, exist := c.Get("UserId")
+	if !exist {
+		c.JSON(http.StatusForbidden, gin.H{"error": "User ID not found"})
+		return
+	}
+
+	// приводим значение к uuid
+	userID, ok := userIDValue.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID type"})
+		return
+	}
+
 	// получаем роль пользователя из контекста
 	userRole, exist := c.Get("UserRole")
 	if !exist {
@@ -180,6 +194,12 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 	if err := c.ShouldBindJSON(&transaction); err != nil {
 		log.Println("Error in ShouldBindJSON", err)
 		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
+		return
+	}
+
+	if transaction.UserFrom != userID {
+		log.Println("transaction from foreign user")
+		c.JSON((http.StatusBadRequest), gin.H{"error": "transaction from foreign user"})
 		return
 	}
 

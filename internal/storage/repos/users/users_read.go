@@ -8,13 +8,13 @@ import (
 // получение данных о пользователе по id
 func (db *Repo) GetUserByID(userId uuid.UUID) (User, error) {
 	query := `
-				SELECT id, name, surname, email, phone_number, timezone
+				SELECT id, name, surname, email, phone_number, timezone, role
 				FROM bank_app.users
 				WHERE id = $1
 			`
 	var user User
 
-	err := db.DB.QueryRow(query, userId).Scan(&user.ID, &user.Name, &user.Surname, &user.Email, &user.PhoneNumber, &user.Timezone)
+	err := db.DB.QueryRow(query, userId).Scan(&user.ID, &user.Name, &user.Surname, &user.Email, &user.PhoneNumber, &user.Timezone, &user.Role)
 	if err != nil {
 		return User{}, fmt.Errorf("Error in GetUserByID query: %w", err)
 	}
@@ -25,13 +25,13 @@ func (db *Repo) GetUserByID(userId uuid.UUID) (User, error) {
 // получение данных о пользователе по email
 func (db *Repo) GetUserByEmail(userEmail string) (User, error) {
 	query := `
-				SELECT id, name, surname, password, email, phone_number, timezone
+				SELECT id, name, surname, password, email, phone_number, timezone, role
 				FROM bank_app.users
 				WHERE email = $1
 			`
 	var user User
 
-	err := db.DB.QueryRow(query, userEmail).Scan(&user.ID, &user.Name, &user.Surname, &user.Password, &user.Email, &user.PhoneNumber, &user.Timezone)
+	err := db.DB.QueryRow(query, userEmail).Scan(&user.ID, &user.Name, &user.Surname, &user.Password, &user.Email, &user.PhoneNumber, &user.Timezone, &user.Role)
 	if err != nil {
 		return User{}, fmt.Errorf("Error in GetUserByEmail query: %w", err)
 	}

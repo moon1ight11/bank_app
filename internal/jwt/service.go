@@ -1,12 +1,13 @@
 package jwt
 
 import (
+	"bank_app/internal/storage/repos/users"
 	"errors"
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"time"
-	"fmt"
 	"regexp"
+	"time"
 )
 
 type Service struct {
@@ -24,9 +25,9 @@ func NewJWTService(secret string, expiration time.Duration) TokenService {
 // валидация кастомных полей клеймов
 func (c *Claims) CustomFieldsValidate() error {
 	// проверяем валидность uuid
-	if c.UserId == uuid.Nil {
-		return fmt.Errorf("user id is empty")
-	}
+	// if c.UserId == uuid.Nil {
+	// 	return fmt.Errorf("user id is empty")
+	// }
 
 	// проверяем, что имя пользователя не пустое
 	if c.UserName == "" {
@@ -52,12 +53,13 @@ func (c *Claims) CustomFieldsValidate() error {
 }
 
 // создание токена
-func (j *Service) GenerateToken(userID uuid.UUID, userName string, userSurname string, userEmail string) (string, error) {
+func (j *Service) GenerateToken(userID uuid.UUID, userName string, userSurname string, userEmail string, userRole users.Role) (string, error) {
 	claims := &Claims{
 		UserId:      userID,
 		UserName:    userName,
 		UserSurname: userSurname,
 		UserEmail:   userEmail,
+		Roles:       userRole,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.expiration)),
 		},

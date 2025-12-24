@@ -63,6 +63,11 @@ func (t *TransactionsService) TransactionIncoming(transaction transactions.Trans
 		return uuid.Nil, fmt.Errorf("wrong currency")
 	}
 
+	// проверяем, что переводится какая-то сумма
+	if transaction.Amount <= 0 {
+		return uuid.Nil, fmt.Errorf("zero amount")
+	}
+
 	// находим cчет нулевого админа, с которого будет списано
 	adminAccount, err := t.accountsRepo.GetAdminAccountByCurrency(transaction.Currency)
 	if err != nil {
@@ -119,6 +124,11 @@ func (t *TransactionsService) TransactionOutcoming(transaction transactions.Tran
 	// проверяем, чтобы счет был в той же валюте, что указана в транзакции
 	if account.Currency != transaction.Currency {
 		return uuid.Nil, fmt.Errorf("wrong currency")
+	}
+
+	// проверяем, что переводится какая-то сумма
+	if transaction.Amount <= 0 {
+		return uuid.Nil, fmt.Errorf("zero amount")
 	}
 
 	// находим cчет нулевого админа, которому будет зачислено
@@ -189,6 +199,16 @@ func (t *TransactionsService) TransactionTransfer(transaction transactions.Trans
 	// проверяем, что одинаковые валюты
 	if accountFrom.Currency != accountTo.Currency {
 		return uuid.Nil, err
+	}
+
+	// проверяем, что переводится какая-то сумма
+	if transaction.Amount <= 0 {
+		return uuid.Nil, fmt.Errorf("zero amount")
+	}
+
+	// проверяем, чтобы средства не переводились в рамках одного счета
+	if accountFrom.ID == accountTo.ID {
+		return uuid.Nil, fmt.Errorf("transaction within one account")
 	}
 
 	// открываем ТХ

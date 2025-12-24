@@ -219,6 +219,8 @@ func (u *UsersHandler) DeleteUser(c *gin.Context) {
 		return
 	}
 
+	c.SetCookie("cookie", "1", -1, "/", "", false, false)
+
 	c.JSON(http.StatusOK, gin.H{"message": "delete is complete"})
 }
 
@@ -256,7 +258,7 @@ func (u *UsersHandler) CreateAdmin(c *gin.Context) {
 
 	admin.Role = users.RoleAdmin
 
-	adminID, err := u.userService.VerificatorCreate(admin)
+	adminID, err := u.userService.AdminCreate(admin)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
