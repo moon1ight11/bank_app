@@ -1,21 +1,22 @@
 package handlers
 
 import (
-	"bank_app/internal/jwt"
-	"bank_app/internal/services"
-	"bank_app/internal/storage/repos/accounts"
+	"bank_app/internal/api/jwt"
+	"bank_app/internal/api/models"
+	"bank_app/internal/services/account"
 	"log"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type AccountsHandler struct {
-	accountsService *services.AccountsService
+	accountsService *account.AccountsService
 	jwtService      jwt.TokenService
 }
 
-func NewAccountsHandler(accountsService *services.AccountsService, jwtService jwt.TokenService) *AccountsHandler {
+func NewAccountsHandler(accountsService *account.AccountsService, jwtService jwt.TokenService) *AccountsHandler {
 	return &AccountsHandler{
 		accountsService: accountsService,
 		jwtService:      jwtService,
@@ -38,7 +39,7 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 		return
 	}
 
-	var NewAccount accounts.Account
+	var NewAccount models.AccountCreate
 
 	// получаем валюту счета с фронта
 	if err := c.ShouldBindJSON(&NewAccount); err != nil {

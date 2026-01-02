@@ -1,18 +1,10 @@
-package services
+package user
 
 import (
-	"bank_app/internal/storage/repos/users"
+	"bank_app/internal/api/models"
 	"fmt"
 	"github.com/google/uuid"
 )
-
-type UsersService struct {
-	usersRepo *users.Repo
-}
-
-func NewUsersService(usersRepo *users.Repo) *UsersService {
-	return &UsersService{usersRepo: usersRepo}
-}
 
 // проверка данных пользователя
 func (u *UsersService) UserCheck(phoneNumber string, userEmail string) (bool, error) {
@@ -38,26 +30,34 @@ func (u *UsersService) UserCheck(phoneNumber string, userEmail string) (bool, er
 }
 
 // верификация пользователя
-func (u *UsersService) UserVerification(User users.User) (users.User, error) {
+func (u *UsersService) UserVerification(User models.UserAutorization) (models.UserGet, error) {
 	foundUser, err := u.usersRepo.GetUserByEmail(User.Email)
 	if err != nil {
-		return users.User{}, err
+		return models.UserGet{}, err
 	}
 
 	if foundUser.PhoneNumber != User.PhoneNumber {
-		return users.User{}, fmt.Errorf("wrong phone number")
+		return models.UserGet{}, fmt.Errorf("wrong phone number")
 	}
 
 	if foundUser.Password != User.Password {
-		return users.User{}, fmt.Errorf("passwords not match")
+		return models.UserGet{}, fmt.Errorf("passwords not match")
 	}
 
-	return foundUser, nil
+	var user models.UserGet
+	user.Id = foundUser.ID
+	user.Name = foundUser.Name
+	user.Surname = foundUser.Surname
+	user.Email = foundUser.Email
+	user.PhoneNumber = foundUser.PhoneNumber
+	user.Role = models.Role(foundUser.Role)
+
+	return user, nil
 }
 
 // добавление пользователя
-func (u *UsersService) UserAdd(User users.User) (uuid.UUID, error) {
-	UserID, err := u.usersRepo.CreateUser(User)
+func (u *UsersService) UserAdd(User models.UserRegister) (uuid.UUID, error) {
+	UserID, err := u.usersRepo.CreateUser(User.Name, User.Surname, User.Email, User.PhoneNumber, User.Password)
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -66,11 +66,20 @@ func (u *UsersService) UserAdd(User users.User) (uuid.UUID, error) {
 }
 
 // получение пользователя
-func (u *UsersService) UserGet(UserID uuid.UUID) (users.User, error) {
-	user, err := u.usersRepo.GetUserByID(UserID)
+func (u *UsersService) UserGet(UserID uuid.UUID) (models.UserGet, error) {
+	User, err := u.usersRepo.GetUserByID(UserID)
 	if err != nil {
-		return users.User{}, err
+		return models.UserGet{}, err
 	}
+
+	var user models.UserGet
+	user.Id = User.ID
+	user.Name = User.Name
+	user.Surname = User.Surname
+	user.Email = User.Email
+	user.PhoneNumber = User.PhoneNumber
+	user.Timezone = User.Timezone
+	user.Role = models.Role(User.Role)
 
 	return user, nil
 }
@@ -151,19 +160,32 @@ func (u *UsersService) UserDelete(userID uuid.UUID) error {
 	return nil
 }
 
-// создание верификатора
-func (u *UsersService) VerificatorCreate(verificator users.User) (uuid.UUID, error) {
-	verificatorID, err := u.usersRepo.CreateVerificator(verificator)
-	if err != nil {
-		return uuid.Nil, err
-	}
+// // создание верификатора
+// func (u *UsersService) VerificatorCreate(verificator models.UserRegister) (uuid.UUID, error) {
+// 	verificatorID, err := u.usersRepo.CreateVerificator(
+// 		verificator.Name,
+// 		verificator.Surname,
+// 		verificator.Email,
+// 		verificator.PhoneNumber,
+// 		verificator.Password,
+// 	)
+// 	if err != nil {
+// 		return uuid.Nil, err
+// 	}
 
-	return verificatorID, nil
-}
+// 	return verificatorID, nil
+// }
 
 // создание админа
-func (u *UsersService) AdminCreate(admin users.User) (uuid.UUID, error) {
-	adminID, err := u.usersRepo.CreateAdmin(admin)
+func (u *UsersService) AdminCreate(admin models.UserRegister) (uuid.UUID, error) {
+	adminID, err := u.usersRepo.CreateAdmin(
+		admin.Name,
+		admin.Surname,
+		admin.Email,
+		admin.PhoneNumber,
+		admin.Password,
+		string(admin.Role),
+	)
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -171,22 +193,28 @@ func (u *UsersService) AdminCreate(admin users.User) (uuid.UUID, error) {
 	return adminID, nil
 }
 
-// список админов
-func (u *UsersService) AdminsGet() ([]users.User, error) {
-	admins, err := u.usersRepo.GetUsersByRole(users.RoleAdmin)
+// список пользователей с указанной ролью
+func (u *UsersService) UsersByRoleGet(role models.Role) ([]models.UserGet, error) {
+	usersRepo, err := u.usersRepo.GetUsersByRole(string(role))
 	if err != nil {
 		return nil, err
 	}
 
-	return admins, nil
-}
+	var usersApi []models.UserGet
 
-// список верификаторов
-func (u *UsersService) VerificatorsGet() ([]users.User, error) {
-	verificators, err := u.usersRepo.GetUsersByRole(users.RoleVerificator)
-	if err != nil {
-		return nil, err
+	for i := range usersRepo {
+		var userApi models.UserGet
+
+		userApi.Id = usersRepo[i].ID
+		userApi.Name = usersRepo[i].Name
+		userApi.Surname = usersRepo[i].Surname
+		userApi.Email = usersRepo[i].Email
+		userApi.PhoneNumber = usersRepo[i].PhoneNumber
+		userApi.Timezone = usersRepo[i].Timezone
+		userApi.Role = models.Role(usersRepo[i].Role)
+
+		usersApi = append(usersApi, userApi)
 	}
 
-	return verificators, nil
+	return usersApi, nil
 }

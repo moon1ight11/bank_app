@@ -3,9 +3,11 @@ package main
 import (
 	"bank_app/internal/api"
 	"bank_app/internal/api/handlers"
+	"bank_app/internal/api/jwt"
 	"bank_app/internal/config"
-	"bank_app/internal/jwt"
-	"bank_app/internal/services"
+	"bank_app/internal/services/user"
+	"bank_app/internal/services/account"
+	"bank_app/internal/services/transaction"
 	"bank_app/internal/storage"
 	"bank_app/internal/storage/repos/accounts"
 	"bank_app/internal/storage/repos/transactions"
@@ -39,9 +41,9 @@ func main() {
 	accountsRepo := accounts.NewAccountsRepo(db)
 	transactionsRepo := transactions.NewTransactionsRepo(db)
 
-	usersService := services.NewUsersService(usersRepo)
-	accountsService := services.NewAccountsService(accountsRepo, transactionsRepo)
-	transactionsService := services.NewTransactionsService(transactionsRepo, accountsRepo)
+	usersService := user.NewUsersService(usersRepo)
+	accountsService := account.NewAccountsService(accountsRepo, transactionsRepo)
+	transactionsService := transaction.NewTransactionsService(transactionsRepo, accountsRepo)
 
 	authHandler := handlers.NewAuthHandler(usersService, jwtService)
 	usersHandler := handlers.NewUsersHandler(usersService, jwtService)

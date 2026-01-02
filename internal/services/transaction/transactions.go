@@ -1,57 +1,90 @@
-package services
+package transaction
 
 import (
-	"bank_app/internal/storage/repos/accounts"
-	"bank_app/internal/storage/repos/transactions"
+	"bank_app/internal/api/models"
 	"fmt"
-
 	"github.com/google/uuid"
 )
 
-type TransactionsService struct {
-	transactionsRepo *transactions.Repo
-	accountsRepo     *accounts.Repo
-}
-
-func NewTransactionsService(transactionsRepo *transactions.Repo, accountsRepo *accounts.Repo) *TransactionsService {
-	return &TransactionsService{
-		transactionsRepo: transactionsRepo,
-		accountsRepo:     accountsRepo,
-	}
-}
-
 // получение всех транзакций пользователя
-func (t *TransactionsService) AllTransactionsGet(userID uuid.UUID) ([]transactions.Transaction, error) {
-	transactions, err := t.transactionsRepo.GetAllUsersTransactions(userID)
+func (t *TransactionsService) AllTransactionsGet(userID uuid.UUID) ([]models.Transaction, error) {
+	transactionsRepo, err := t.transactionsRepo.GetAllUsersTransactions(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	return transactions, nil
+	transactionsApi := make([]models.Transaction, 0, len(transactionsRepo))
+
+	for i := range transactionsRepo {
+		// Создаем новую транзакцию
+		transactionApi := models.Transaction{
+			ID:          transactionsRepo[i].ID,
+			UserFrom:    transactionsRepo[i].UserFrom,
+			AccountFrom: transactionsRepo[i].AccountFrom,
+			UserTo:      transactionsRepo[i].UserTo,
+			AccountTo:   transactionsRepo[i].AccountTo,
+			Amount:      transactionsRepo[i].Amount,
+			Timestamp:   transactionsRepo[i].Timestamp,
+			Currency:    models.Currency(transactionsRepo[i].Currency),
+		}
+
+		transactionsApi = append(transactionsApi, transactionApi)
+	}
+
+	return transactionsApi, nil
 }
 
 // получение транзакций по счету
-func (t *TransactionsService) AccountTransactionsGet(userID uuid.UUID, accountID uuid.UUID) ([]transactions.Transaction, error) {
-	transactions, err := t.transactionsRepo.GetTransactionsByAccount(userID, accountID)
+func (t *TransactionsService) AccountTransactionsGet(userID uuid.UUID, accountID uuid.UUID) ([]models.Transaction, error) {
+	transactionsRepo, err := t.transactionsRepo.GetTransactionsByAccount(userID, accountID)
 	if err != nil {
 		return nil, err
 	}
 
-	return transactions, nil
+	transactionsApi := make([]models.Transaction, 0, len(transactionsRepo))
+
+	for i := range transactionsRepo {
+		// Создаем новую транзакцию
+		transactionApi := models.Transaction{
+			ID:          transactionsRepo[i].ID,
+			UserFrom:    transactionsRepo[i].UserFrom,
+			AccountFrom: transactionsRepo[i].AccountFrom,
+			UserTo:      transactionsRepo[i].UserTo,
+			AccountTo:   transactionsRepo[i].AccountTo,
+			Amount:      transactionsRepo[i].Amount,
+			Timestamp:   transactionsRepo[i].Timestamp,
+			Currency:    models.Currency(transactionsRepo[i].Currency),
+		}
+
+		transactionsApi = append(transactionsApi, transactionApi)
+	}
+
+	return transactionsApi, nil
 }
 
 // получение одной транзакции
-func (t *TransactionsService) TransactionByIdGet(userID uuid.UUID, transactionID uuid.UUID) (transactions.Transaction, error) {
-	transacion, err := t.transactionsRepo.GetTransactionByID(transactionID, userID)
+func (t *TransactionsService) TransactionByIdGet(userID uuid.UUID, transactionID uuid.UUID) (models.Transaction, error) {
+	transacionRepo, err := t.transactionsRepo.GetTransactionByID(transactionID, userID)
 	if err != nil {
-		return transactions.Transaction{}, err
+		return models.Transaction{}, err
 	}
 
-	return transacion, nil
+	var transactionApi models.Transaction
+
+	transactionApi.ID = transacionRepo.ID
+	transactionApi.UserFrom = transacionRepo.UserFrom
+	transactionApi.AccountFrom = transacionRepo.AccountFrom
+	transactionApi.UserTo = transacionRepo.UserTo
+	transactionApi.AccountTo = transacionRepo.AccountTo
+	transactionApi.Amount = transacionRepo.Amount
+	transactionApi.Timestamp = transacionRepo.Timestamp
+	transactionApi.Currency = models.Currency(transacionRepo.Currency)
+
+	return transactionApi, nil
 }
 
 // выполнение входящей транзакции
-func (t *TransactionsService) TransactionIncoming(transaction transactions.Transaction) (uuid.UUID, error) {
+func (t *TransactionsService) TransactionIncoming(transaction models.Transaction) (uuid.UUID, error) {
 	// находим счет, на который пополнение
 	account, err := t.accountsRepo.GetAccountById(transaction.AccountTo, transaction.UserTo)
 	if err != nil {
@@ -59,7 +92,7 @@ func (t *TransactionsService) TransactionIncoming(transaction transactions.Trans
 	}
 
 	// проверяем, чтобы счет был в той же валюте, что указана в транзакции
-	if account.Currency != transaction.Currency {
+	if models.Currency(account.Currency) != transaction.Currency {
 		return uuid.Nil, fmt.Errorf("wrong currency")
 	}
 
@@ -69,7 +102,7 @@ func (t *TransactionsService) TransactionIncoming(transaction transactions.Trans
 	}
 
 	// находим cчет нулевого админа, с которого будет списано
-	adminAccount, err := t.accountsRepo.GetAdminAccountByCurrency(transaction.Currency)
+	adminAccount, err := t.accountsRepo.GetAdminAccountByCurrency(string(transaction.Currency))
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -101,7 +134,7 @@ func (t *TransactionsService) TransactionIncoming(transaction transactions.Trans
 		account.UserID,
 		account.ID,
 		transaction.Amount,
-		transaction.Currency,
+		string(transaction.Currency),
 		tx,
 	)
 	if err != nil {
@@ -114,7 +147,7 @@ func (t *TransactionsService) TransactionIncoming(transaction transactions.Trans
 }
 
 // выполнение исходящей транзакции
-func (t *TransactionsService) TransactionOutcoming(transaction transactions.Transaction) (uuid.UUID, error) {
+func (t *TransactionsService) TransactionOutcoming(transaction models.Transaction) (uuid.UUID, error) {
 	// находим счет, с которого списываем
 	account, err := t.accountsRepo.GetAccountById(transaction.AccountFrom, transaction.UserFrom)
 	if err != nil {
@@ -122,7 +155,7 @@ func (t *TransactionsService) TransactionOutcoming(transaction transactions.Tran
 	}
 
 	// проверяем, чтобы счет был в той же валюте, что указана в транзакции
-	if account.Currency != transaction.Currency {
+	if models.Currency(account.Currency)  != transaction.Currency {
 		return uuid.Nil, fmt.Errorf("wrong currency")
 	}
 
@@ -132,7 +165,7 @@ func (t *TransactionsService) TransactionOutcoming(transaction transactions.Tran
 	}
 
 	// находим cчет нулевого админа, которому будет зачислено
-	adminAccount, err := t.accountsRepo.GetAdminAccountByCurrency(transaction.Currency)
+	adminAccount, err := t.accountsRepo.GetAdminAccountByCurrency(string(transaction.Currency))
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -170,7 +203,7 @@ func (t *TransactionsService) TransactionOutcoming(transaction transactions.Tran
 		account.UserID,
 		account.ID,
 		transaction.Amount,
-		transaction.Currency,
+		string(transaction.Currency),
 		tx,
 	)
 	if err != nil {
@@ -183,7 +216,7 @@ func (t *TransactionsService) TransactionOutcoming(transaction transactions.Tran
 }
 
 // выполнение трансфера
-func (t *TransactionsService) TransactionTransfer(transaction transactions.Transaction) (uuid.UUID, error) {
+func (t *TransactionsService) TransactionTransfer(transaction models.Transaction) (uuid.UUID, error) {
 	// находим счет, с которого списываем
 	accountFrom, err := t.accountsRepo.GetAccountById(transaction.AccountFrom, transaction.UserFrom)
 	if err != nil {
@@ -244,7 +277,7 @@ func (t *TransactionsService) TransactionTransfer(transaction transactions.Trans
 		accountTo.UserID,
 		accountTo.ID,
 		transaction.Amount,
-		transaction.Currency,
+		string(transaction.Currency),
 		tx,
 	)
 	if err != nil {

@@ -1,27 +1,14 @@
-package services
+package account
 
 import (
-	"bank_app/internal/storage/repos/accounts"
-	"bank_app/internal/storage/repos/transactions"
+	"bank_app/internal/api/models"
 	"fmt"
 	"github.com/google/uuid"
 )
 
-type AccountsService struct {
-	accountsRepo     *accounts.Repo
-	transactionsRepo *transactions.Repo
-}
-
-func NewAccountsService(accountsRepo *accounts.Repo, transactionsRepo *transactions.Repo) *AccountsService {
-	return &AccountsService{
-		accountsRepo:   accountsRepo,
-		transactionsRepo: transactionsRepo,
-	}
-}
-
 // создание счета
-func (a *AccountsService) AccountAdd(newAccount accounts.Account) (uuid.UUID, error) {
-	AccountID, err := a.accountsRepo.CreateAccount(newAccount.UserID, newAccount.Currency)
+func (a *AccountsService) AccountAdd(newAccount models.AccountCreate) (uuid.UUID, error) {
+	AccountID, err := a.accountsRepo.CreateAccount(newAccount.UserID, string(newAccount.Currency))
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -30,23 +17,42 @@ func (a *AccountsService) AccountAdd(newAccount accounts.Account) (uuid.UUID, er
 }
 
 // вывод всех счетов пользователя
-func (a *AccountsService) AllAccountsGet(userID uuid.UUID) ([]accounts.Account, error) {
+func (a *AccountsService) AllAccountsGet(userID uuid.UUID) ([]models.AccountsGet, error) {
 	Accounts, err := a.accountsRepo.GetAccountsByUserId(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	return Accounts, nil
+	var accounts []models.AccountsGet
+
+	for i := range(Accounts) {
+		var account models.AccountsGet
+
+		account.ID = Accounts[i].ID
+		account.UserID = Accounts[i].UserID
+		account.Balance = Accounts[i].Balance
+		account.Currency = models.Currency(string(Accounts[i].Currency))
+
+		accounts = append(accounts, account)
+	}
+
+	return accounts, nil
 }
 
 // вывод одного счета пользователя
-func (a *AccountsService) AccountGet(userID uuid.UUID, accountID uuid.UUID) (accounts.Account, error) {
+func (a *AccountsService) AccountGet(userID uuid.UUID, accountID uuid.UUID) (models.AccountsGet, error) {
 	Account, err := a.accountsRepo.GetAccountById(accountID, userID)
 	if err != nil {
-		return accounts.Account{}, err
+		return models.AccountsGet{}, err
 	}
 
-	return Account, nil
+	var account models.AccountsGet
+	account.ID = Account.ID
+	account.UserID = Account.UserID
+	account.Balance = Account.Balance
+	account.Currency = models.Currency(Account.Currency)
+
+	return account, nil
 }
 
 // удаление счета

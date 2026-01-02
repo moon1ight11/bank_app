@@ -1,21 +1,21 @@
 package handlers
 
 import (
-	"bank_app/internal/jwt"
-	"bank_app/internal/services"
-	"bank_app/internal/storage/repos/users"
-	"github.com/gin-gonic/gin"
+	"bank_app/internal/api/jwt"
+	"bank_app/internal/api/models"
+	"bank_app/internal/services/user"
 	"log"
 	"net/http"
 	"strings"
+	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
-	userService *services.UsersService
+	userService *user.UsersService
 	jwtService  jwt.TokenService
 }
 
-func NewAuthHandler(userService *services.UsersService, jwtService jwt.TokenService) *AuthHandler {
+func NewAuthHandler(userService *user.UsersService, jwtService jwt.TokenService) *AuthHandler {
 	return &AuthHandler{
 		userService: userService,
 		jwtService:  jwtService,
@@ -25,7 +25,7 @@ func NewAuthHandler(userService *services.UsersService, jwtService jwt.TokenServ
 // регистрация
 func (u *AuthHandler) SignUp(c *gin.Context) {
 	// получаем данные пользователя с фронта
-	var User users.User
+	var User models.UserRegister
 	if err := c.ShouldBindJSON(&User); err != nil {
 		log.Println("Error in ShouldBindJSON", err)
 		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
@@ -83,7 +83,7 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 	}
 
 	// применяем роль по умолчанию
-	User.Role = users.RoleUser
+	User.Role = models.RoleBasic
 
 	// добавляем пользователя в БД
 	userID, err := u.userService.UserAdd(User)
@@ -110,7 +110,7 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 // авторизация
 func (u *AuthHandler) SignIn(c *gin.Context) {
 	// получаем данные пользователя с фронта
-	var User users.User
+	var User models.UserAutorization
 	if err := c.ShouldBindJSON(&User); err != nil {
 		log.Println("Error in ShouldBindJSON", err)
 		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
@@ -147,7 +147,7 @@ func (u *AuthHandler) SignIn(c *gin.Context) {
 	}
 
 	// генерируем токен для найденного пользователя
-	token, err := u.jwtService.GenerateToken(foundUser.ID, foundUser.Name, foundUser.Surname, foundUser.Email, foundUser.Role)
+	token, err := u.jwtService.GenerateToken(foundUser.Id, foundUser.Name, foundUser.Surname, foundUser.Email, foundUser.Role)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
@@ -157,7 +157,7 @@ func (u *AuthHandler) SignIn(c *gin.Context) {
 	// устанавливаем куки
 	c.SetCookie("cookie", token, 3600, "/", "", false, true)
 
-	c.JSON(http.StatusOK, gin.H{"user_id": foundUser.ID})
+	c.JSON(http.StatusOK, gin.H{"user_id": foundUser.Id})
 }
 
 // выход из профиля

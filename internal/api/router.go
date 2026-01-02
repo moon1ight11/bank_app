@@ -2,8 +2,9 @@ package api
 
 import (
 	"bank_app/internal/api/handlers"
-	"bank_app/internal/jwt"
-	"bank_app/internal/middleware"
+	"bank_app/internal/api/jwt"
+	"bank_app/internal/api/middleware"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -98,12 +99,8 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 	verificatorGroup.POST("/accounts/transactions/outcome", r.transactionsHandler.CreateOutcomingTransaction)
 
 	// АДМИН // --- только админы
-	// создание админа
-	adminGroup.POST("/users/create-admin", r.usersHandler.CreateAdmin)
-	// создание верификатора
-	adminGroup.POST("/users/create-verificator", r.usersHandler.CreateVerificator)
-	// список админов
-	adminGroup.GET("/users/admins", r.usersHandler.GetAdmins)
-	// список верификаторов
-	adminGroup.GET("/users/verificators", r.usersHandler.GetVerificators)
+	// создание админа или верификатора
+	adminGroup.POST("/users", r.usersHandler.CreateAdminOrVerificator)
+	// список админов или верификаторов
+	adminGroup.GET("/users", r.usersHandler.GetAllUsers)
 }

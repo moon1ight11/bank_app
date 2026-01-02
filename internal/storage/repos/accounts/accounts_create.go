@@ -1,14 +1,12 @@
 package accounts
 
 import (
-	"bank_app/internal/storage/repos/transactions"
 	"fmt"
-
 	"github.com/google/uuid"
 )
 
 // создание счета
-func (db *Repo) CreateAccount(userID uuid.UUID, currency transactions.Currency) (uuid.UUID, error) {
+func (db *Repo) CreateAccount(userID uuid.UUID, currency string) (uuid.UUID, error) {
 	query := `
 				INSERT INTO bank_app.accounts (user_id, currency)
 				VALUES ($1, $2)

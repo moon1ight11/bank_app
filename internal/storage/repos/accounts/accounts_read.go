@@ -1,38 +1,36 @@
 package accounts
 
 import (
-	"bank_app/internal/storage/repos/transactions"
 	"database/sql"
 	"fmt"
-
 	"github.com/google/uuid"
 )
 
 // получение счета по id
-func (db *Repo) GetAccountById(accountID uuid.UUID, userID uuid.UUID) (Account, error) {
+func (db *Repo) GetAccountById(accountID uuid.UUID, userID uuid.UUID) (GetAccount, error) {
 	query := `
 				SELECT id, user_id, balance, currency
 				FROM bank_app.accounts
 				WHERE user_id = $1 AND id = $2
 			`
-	var account Account
+	var account GetAccount
 
 	err := db.DB.QueryRow(query, userID, accountID).Scan(&account.ID, &account.UserID, &account.Balance, &account.Currency)
 	if err != nil {
-		return Account{}, fmt.Errorf("error in GetAccountById query: %w", err)
+		return GetAccount{}, fmt.Errorf("error in GetAccountById query: %w", err)
 	}
 
 	return account, nil
 }
 
 // получение счетов по id пользователя
-func (db *Repo) GetAccountsByUserId(userID uuid.UUID) ([]Account, error) {
+func (db *Repo) GetAccountsByUserId(userID uuid.UUID) ([]GetAccount, error) {
 	query := `
 				SELECT id, user_id, balance, currency
 				FROM bank_app.accounts
 				WHERE user_id = $1
 			`
-	var accounts []Account
+	var accounts []GetAccount
 	rows, err := db.DB.Query(query, userID)
 	if err != nil {
 		return nil, fmt.Errorf("error in GetAccountsByUserId query: %w", err)
@@ -40,7 +38,7 @@ func (db *Repo) GetAccountsByUserId(userID uuid.UUID) ([]Account, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var account Account
+		var account GetAccount
 		err := rows.Scan(
 			&account.ID,
 			&account.UserID,
@@ -56,21 +54,21 @@ func (db *Repo) GetAccountsByUserId(userID uuid.UUID) ([]Account, error) {
 }
 
 // получение админского счета с указанной валютой
-func (db *Repo) GetAdminAccountByCurrency(currency transactions.Currency) (Account, error) {
+func (db *Repo) GetAdminAccountByCurrency(currency string) (GetAccount, error) {
 	query := `
 				SELECT id, user_id, balance, currency
 				FROM bank_app.accounts
 				WHERE user_id = $1 AND currency = $2
 			`
-	var account Account
-	UserID, err := uuid.Parse("00000000-0000-0000-0000-000000000000")
+	var account GetAccount
+	UserID, err := uuid.Parse("00000000-0000-0000-0000-000000000001")
 	if err != nil {
-		return Account{}, fmt.Errorf("error in Parse UUID: %w", err)
+		return GetAccount{}, fmt.Errorf("error in Parse UUID: %w", err)
 	}
 
 	err = db.DB.QueryRow(query, UserID, currency).Scan(&account.ID, &account.UserID, &account.Balance, &account.Currency)
 	if err != nil {
-		return Account{}, fmt.Errorf("error in GetAccountById query: %w", err)
+		return GetAccount{}, fmt.Errorf("error in GetAccountById query: %w", err)
 	}
 
 	return account, nil

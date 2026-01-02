@@ -1,23 +1,21 @@
 package handlers
 
 import (
-	"bank_app/internal/jwt"
-	"bank_app/internal/services"
-	"bank_app/internal/storage/repos/transactions"
-	"bank_app/internal/storage/repos/users"
+	"bank_app/internal/api/jwt"
+	"bank_app/internal/api/models"
+	"bank_app/internal/services/transaction"
 	"log"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type TransactionsHandler struct {
-	transactionsService *services.TransactionsService
+	transactionsService *transaction.TransactionsService
 	jwtService          jwt.TokenService
 }
 
-func NewTransactionsHandler(transactionsService *services.TransactionsService, jwtService jwt.TokenService) *TransactionsHandler {
+func NewTransactionsHandler(transactionsService *transaction.TransactionsService, jwtService jwt.TokenService) *TransactionsHandler {
 	return &TransactionsHandler{
 		transactionsService: transactionsService,
 		jwtService:          jwtService,
@@ -123,7 +121,7 @@ func (t *TransactionsHandler) GetTransactionByID(c *gin.Context) {
 // пополнение счета
 func (t *TransactionsHandler) CreateIncomingTransaction(c *gin.Context) {
 	// получаем с фронта тело транзакции
-	var transaction transactions.Transaction
+	var transaction models.Transaction
 	if err := c.ShouldBindJSON(&transaction); err != nil {
 		log.Println("Error in ShouldBindJSON", err)
 		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
@@ -143,7 +141,7 @@ func (t *TransactionsHandler) CreateIncomingTransaction(c *gin.Context) {
 // списание со счета
 func (t *TransactionsHandler) CreateOutcomingTransaction(c *gin.Context) {
 	// получаем с фронта тело транзакции
-	var transaction transactions.Transaction
+	var transaction models.Transaction
 	if err := c.ShouldBindJSON(&transaction); err != nil {
 		log.Println("Error in ShouldBindJSON", err)
 		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
@@ -184,19 +182,20 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 	}
 
 	// запрещаем делать транзакции админам и верификаторам
-	if userRole != users.RoleUser {
+	if userRole != models.RoleBasic {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Admin and Verificator cant make transfer"})
 		return
 	}
 
 	// получаем с фронта тело транзакции
-	var transaction transactions.Transaction
+	var transaction models.Transaction
 	if err := c.ShouldBindJSON(&transaction); err != nil {
 		log.Println("Error in ShouldBindJSON", err)
 		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
 		return
 	}
 
+	// запрещаем делать перевод не от себя
 	if transaction.UserFrom != userID {
 		log.Println("transaction from foreign user")
 		c.JSON((http.StatusBadRequest), gin.H{"error": "transaction from foreign user"})

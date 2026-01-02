@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE SCHEMA IF NOT EXISTS bank_app;
 
-CREATE TYPE bank_app.ROLES AS ENUM ('User', 'Verificator', 'Admin') ;
+CREATE TYPE bank_app.ROLES AS ENUM ('Basic', 'Verificator', 'Admin') ;
 CREATE TYPE bank_app.CURRENCIES AS ENUM ('USD', 'EUR', 'RUB');
 
 CREATE TABLE
@@ -14,7 +14,7 @@ CREATE TABLE
         phone_number VARCHAR,
         password VARCHAR,
         timezone VARCHAR DEFAULT 'UTC',
-        role bank_app.Roles NOT NULL DEFAULT 'User',
+        role bank_app.Roles NOT NULL DEFAULT 'Basic',
         created_at TIMESTAMPTZ DEFAULT now (),
         updated_at TIMESTAMPTZ
     );

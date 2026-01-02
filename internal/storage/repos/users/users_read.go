@@ -6,34 +6,34 @@ import (
 )
 
 // получение данных о пользователе по id
-func (db *Repo) GetUserByID(userId uuid.UUID) (User, error) {
+func (db *Repo) GetUserByID(userId uuid.UUID) (GetUser, error) {
 	query := `
 				SELECT id, name, surname, email, phone_number, timezone, role
 				FROM bank_app.users
 				WHERE id = $1
 			`
-	var user User
+	var user GetUser
 
 	err := db.DB.QueryRow(query, userId).Scan(&user.ID, &user.Name, &user.Surname, &user.Email, &user.PhoneNumber, &user.Timezone, &user.Role)
 	if err != nil {
-		return User{}, fmt.Errorf("Error in GetUserByID query: %w", err)
+		return GetUser{}, fmt.Errorf("Error in GetUserByID query: %w", err)
 	}
 
 	return user, nil
 }
 
 // получение данных о пользователе по email
-func (db *Repo) GetUserByEmail(userEmail string) (User, error) {
+func (db *Repo) GetUserByEmail(userEmail string) (GetUser, error) {
 	query := `
 				SELECT id, name, surname, password, email, phone_number, timezone, role
 				FROM bank_app.users
 				WHERE email = $1
 			`
-	var user User
+	var user GetUser
 
 	err := db.DB.QueryRow(query, userEmail).Scan(&user.ID, &user.Name, &user.Surname, &user.Password, &user.Email, &user.PhoneNumber, &user.Timezone, &user.Role)
 	if err != nil {
-		return User{}, fmt.Errorf("Error in GetUserByEmail query: %w", err)
+		return GetUser{}, fmt.Errorf("Error in GetUserByEmail query: %w", err)
 	}
 
 	return user, nil
@@ -76,13 +76,13 @@ func (db *Repo) CheckUserPhoneNumber(phoneNumber string) (bool, error) {
 }
 
 // список пользователей с заданной ролью
-func (db *Repo) GetUsersByRole(role Role) ([]User, error) {
+func (db *Repo) GetUsersByRole(role string) ([]GetUser, error) {
 	query := `
 				SELECT id, name, surname, email, timezone
 				FROM bank_app.users
 				WHERE role = $1
 			`
-	var users []User
+	var users []GetUser
 	rows, err := db.DB.Query(query, role)
 	if err != nil {
 		return nil, fmt.Errorf("error in GetUsersByRole query: %w", err)
@@ -90,7 +90,7 @@ func (db *Repo) GetUsersByRole(role Role) ([]User, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var user User
+		var user GetUser
 		err := rows.Scan(
 			&user.ID,
 			&user.Name,

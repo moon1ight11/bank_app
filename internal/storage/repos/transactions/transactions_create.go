@@ -13,7 +13,7 @@ func (db *Repo) CreateTransaction(
 	userTo uuid.UUID,
 	accountTo uuid.UUID,
 	amount int,
-	currency Currency,
+	currency string,
 	tx *sql.Tx,
 ) (uuid.UUID, error) {
 	query := `

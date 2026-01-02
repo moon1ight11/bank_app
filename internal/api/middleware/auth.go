@@ -1,11 +1,10 @@
 package middleware
 
 import (
-	"bank_app/internal/jwt"
-	"bank_app/internal/storage/repos/users"
+	"bank_app/internal/api/jwt"
+	"bank_app/internal/api/models"
 	"log"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,7 +22,6 @@ func Auth(jwtService jwt.TokenService) gin.HandlerFunc {
 		}
 
 		claims := jwt.Claims{}
-
 		token, err := jwtService.ParseToken(value, &claims)
 		if err != nil {
 			log.Println("Error in parse token", err)
@@ -39,12 +37,12 @@ func Auth(jwtService jwt.TokenService) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("UserId", claims.UserId)
-		c.Set("UserRole", claims.Roles)
+		c.Set("UserId", *claims.UserId)
+		c.Set("UserRole", claims.Role)
 	}
 }
 
-// role-check для юзера и выше
+// role-check для базового и выше
 func AuthUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer c.Next()
@@ -57,7 +55,7 @@ func AuthUser() gin.HandlerFunc {
 			return
 		}
 
-		if UserRole != users.RoleUser && UserRole != users.RoleVerificator && UserRole != users.RoleAdmin{
+		if UserRole != models.RoleBasic && UserRole != models.RoleVerificator && UserRole != models.RoleAdmin{
 			log.Println("Access violation: you are not 'User'")
 			c.JSON(http.StatusForbidden, gin.H{"error": "Access violation"})
 			c.Abort()
@@ -79,7 +77,7 @@ func AuthVerificator() gin.HandlerFunc {
 			return
 		}
 
-		if UserRole != users.RoleVerificator && UserRole != users.RoleAdmin {
+		if UserRole != models.RoleVerificator && UserRole != models.RoleAdmin {
 			log.Println("Access violation: you are not 'Verificator' or 'Admin")
 			c.JSON(http.StatusForbidden, gin.H{"error": "Access violation"})
 			c.Abort()
@@ -101,7 +99,7 @@ func AuthAdmin() gin.HandlerFunc {
 			return
 		}
 
-		if UserRole != users.RoleAdmin {
+		if UserRole != models.RoleAdmin {
 			log.Println("Access violation: you are not 'Admin'")
 			c.JSON(http.StatusForbidden, gin.H{"error": "Access violation"})
 			c.Abort()

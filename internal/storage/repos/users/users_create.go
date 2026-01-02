@@ -6,7 +6,13 @@ import (
 )
 
 // создание пользователя
-func (db *Repo) CreateUser(NewUser User) (uuid.UUID, error) {
+func (db *Repo) CreateUser(
+	Name string,
+	Surname string,
+	Email string,
+	PhoneNumber string,
+	Password string,
+) (uuid.UUID, error) {
 	query := `
 				INSERT INTO bank_app.users (name, surname, email, phone_number, password)
 				VALUES ($1, $2, $3, $4, $5)
@@ -15,13 +21,13 @@ func (db *Repo) CreateUser(NewUser User) (uuid.UUID, error) {
 	var userID uuid.UUID
 
 	err := db.DB.QueryRow(
-		query, 
-		NewUser.Name, 
-		NewUser.Surname, 
-		NewUser.Email, 
-		NewUser.PhoneNumber, 
-		NewUser.Password,
-		).Scan(&userID)
+		query,
+		Name,
+		Surname,
+		Email,
+		PhoneNumber,
+		Password,
+	).Scan(&userID)
 
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("Error in CreateUser query: %w", err)
@@ -30,52 +36,64 @@ func (db *Repo) CreateUser(NewUser User) (uuid.UUID, error) {
 	return userID, nil
 }
 
-// создание верификатора
-func (db *Repo) CreateVerificator(NewVerificator User) (uuid.UUID, error) {
-	query := `
-				INSERT INTO bank_app.users (name, surname, email, phone_number, password, role)
-				VALUES ($1, $2, $3, $4, $5, $6)
-				RETURNING id
-			`
-	NewVerificator.Role = RoleVerificator
-	var userID uuid.UUID
+// // создание верификатора
+// func (db *Repo) CreateVerificator(
+// 	Name string,
+// 	Surname string,
+// 	Email string,
+// 	PhoneNumber string,
+// 	Password string,
+// ) (uuid.UUID, error) {
+// 	query := `
+// 				INSERT INTO bank_app.users (name, surname, email, phone_number, password, role)
+// 				VALUES ($1, $2, $3, $4, $5, $6)
+// 				RETURNING id
+// 			`
+// 	Role := models.RoleVerificator
+// 	var userID uuid.UUID
 
-	err := db.DB.QueryRow(
-		query, 
-		NewVerificator.Name,
-		NewVerificator.Surname, 
-		NewVerificator.Email, 
-		NewVerificator.PhoneNumber, 
-		NewVerificator.Password, 
-		NewVerificator.Role,
-		).Scan(&userID)
+// 	err := db.DB.QueryRow(
+// 		query,
+// 		Name,
+// 		Surname,
+// 		Email,
+// 		PhoneNumber,
+// 		Password,
+// 		Role,
+// 	).Scan(&userID)
 
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("Error in CreateVerificator query: %w", err)
-	}
+// 	if err != nil {
+// 		return uuid.Nil, fmt.Errorf("Error in CreateVerificator query: %w", err)
+// 	}
 
-	return userID, nil
-}
+// 	return userID, nil
+// }
 
 // создание админа
-func (db *Repo) CreateAdmin(NewAdmin User) (uuid.UUID, error) {
+func (db *Repo) CreateAdmin(
+	Name string,
+	Surname string,
+	Email string,
+	PhoneNumber string,
+	Password string,
+	Role string,
+) (uuid.UUID, error) {
 	query := `
 				INSERT INTO bank_app.users (name, surname, email, phone_number, password, role)
 				VALUES ($1, $2, $3, $4, $5, $6)
 				RETURNING id
 			`
-	NewAdmin.Role = RoleAdmin
 	var userID uuid.UUID
 
 	err := db.DB.QueryRow(
-		query, 
-		NewAdmin.Name,
-		NewAdmin.Surname, 
-		NewAdmin.Email, 
-		NewAdmin.PhoneNumber, 
-		NewAdmin.Password, 
-		NewAdmin.Role,
-		).Scan(&userID)
+		query,
+		Name,
+		Surname,
+		Email,
+		PhoneNumber,
+		Password,
+		Role,
+	).Scan(&userID)
 
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("Error in CreateAdmin query: %w", err)

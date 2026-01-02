@@ -1,23 +1,23 @@
 package handlers
 
 import (
-	"bank_app/internal/jwt"
-	"bank_app/internal/services"
-	"bank_app/internal/storage/repos/users"
+	"bank_app/internal/api/jwt"
+	"bank_app/internal/api/models"
+	"bank_app/internal/services/user"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"regexp"
 	"strings"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type UsersHandler struct {
-	userService *services.UsersService
+	userService *user.UsersService
 	jwtService  jwt.TokenService
 }
 
-func NewUsersHandler(userService *services.UsersService, jwtService jwt.TokenService) *UsersHandler {
+func NewUsersHandler(userService *user.UsersService, jwtService jwt.TokenService) *UsersHandler {
 	return &UsersHandler{
 		userService: userService,
 		jwtService:  jwtService,
@@ -66,18 +66,10 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	var UpdatedUser struct {
-		UserID       uuid.UUID `json:"user_id"`
-		UserName     *string   `json:"name"`
-		UserSurname  *string   `json:"surname"`
-		UserPassword *string   `json:"password"`
-		UserNumber   *string   `json:"phone_number"`
-		UserEmail    *string   `json:"email"`
-		Timezone     *string   `json:"timezone"`
-	}
+	var UpdatedUser models.UserUpdate
 
 	// устанавливаем user_id
-	UpdatedUser.UserID = UserId
+	UpdatedUser.ID = UserId
 
 	// получаем обновленного пользователя с фронта
 	if err := c.ShouldBindJSON(&UpdatedUser); err != nil {
@@ -87,8 +79,8 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	}
 
 	// если обновляется имя - чтобы было не пустое
-	if UpdatedUser.UserName != nil {
-		if strings.TrimSpace(*UpdatedUser.UserName) == "" {
+	if UpdatedUser.Name != nil {
+		if strings.TrimSpace(*UpdatedUser.Name) == "" {
 			log.Println("New name is empty")
 			c.JSON((http.StatusBadRequest), gin.H{"error": "New name is empty"})
 			return
@@ -96,8 +88,8 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	}
 
 	// если обновляется пароль - чтобы не был пустым
-	if UpdatedUser.UserPassword != nil {
-		if strings.TrimSpace(*UpdatedUser.UserPassword) == "" {
+	if UpdatedUser.Password != nil {
+		if strings.TrimSpace(*UpdatedUser.Password) == "" {
 			log.Println("New pass is empty")
 			c.JSON((http.StatusBadRequest), gin.H{"error": "New pass is empty"})
 			return
@@ -105,10 +97,10 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	}
 
 	// если обновляется почта
-	if UpdatedUser.UserEmail != nil {
+	if UpdatedUser.Email != nil {
 		// проверяем, похожа ли новая почта на почту
 		pattern := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
-		matched, err := regexp.MatchString(pattern, *UpdatedUser.UserEmail)
+		matched, err := regexp.MatchString(pattern, *UpdatedUser.Email)
 		if err != nil {
 			log.Println("Error in MatchString", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -124,8 +116,8 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	}
 
 	// если обновляется телефон
-	if UpdatedUser.UserNumber != nil {
-		if strings.TrimSpace(*UpdatedUser.UserNumber) == "" {
+	if UpdatedUser.PhoneNumber != nil {
+		if strings.TrimSpace(*UpdatedUser.PhoneNumber) == "" {
 			log.Println("New phone number is empty")
 			c.JSON((http.StatusBadRequest), gin.H{"error": "New phone number is empty"})
 			return
@@ -142,15 +134,15 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	}
 
 	// проверка уникальности новых почты и телефона
-	if UpdatedUser.UserEmail != nil || UpdatedUser.UserNumber != nil {
+	if UpdatedUser.Email != nil || UpdatedUser.PhoneNumber != nil {
 		var userNumber, userEmail string
 
-		if UpdatedUser.UserNumber != nil {
-			userNumber = *UpdatedUser.UserNumber
+		if UpdatedUser.PhoneNumber != nil {
+			userNumber = *UpdatedUser.PhoneNumber
 		}
 
-		if UpdatedUser.UserEmail != nil {
-			userEmail = *UpdatedUser.UserEmail
+		if UpdatedUser.Email != nil {
+			userEmail = *UpdatedUser.Email
 		}
 
 		userCheck, err := u.userService.UserCheck(userNumber, userEmail)
@@ -169,22 +161,29 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 
 	// обновляем нужные поля
 	err := u.userService.UserUpdate(
-		UpdatedUser.UserName,
-		UpdatedUser.UserSurname,
-		UpdatedUser.UserPassword,
-		UpdatedUser.UserEmail,
-		UpdatedUser.UserNumber,
+		UpdatedUser.Name,
+		UpdatedUser.Surname,
+		UpdatedUser.Password,
+		UpdatedUser.Email,
+		UpdatedUser.PhoneNumber,
 		UpdatedUser.Timezone,
-		UpdatedUser.UserID,
+		UpdatedUser.ID,
 	)
-
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"UpdatedUser": UpdatedUser})
+	// получение структуры обновленного пользователя
+	foundUser, err := u.userService.UserGet(UpdatedUser.ID)
+	if err != nil {
+		log.Println(err)
+		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"UpdatedUser": foundUser})
 }
 
 // удаление пользователя
@@ -224,70 +223,120 @@ func (u *UsersHandler) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "delete is complete"})
 }
 
-// создание верификатора
-func (u *UsersHandler) CreateVerificator(c *gin.Context) {
-	// получаем с фронта верификатора
-	var verificator users.User
-	if err := c.ShouldBindJSON(&verificator); err != nil {
+// создание админа или верификатора
+func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
+	// получаем с фронта пользователя
+	var user models.UserRegister
+	if err := c.ShouldBindJSON(&user); err != nil {
 		log.Println("Error in ShouldBindJSON", err)
 		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
 		return
 	}
 
-	verificator.Role = users.RoleVerificator
+	// проверка заполненности имени пользователя
+	if strings.TrimSpace(user.Name) == "" {
+		log.Println("Name is empty")
+		c.JSON((http.StatusBadRequest), gin.H{"error": "Name is empty"})
+		return
+	}
 
-	verificatorID, err := u.userService.VerificatorCreate(verificator)
+	// проверка заполненности фамилии пользователя
+	if strings.TrimSpace(user.Surname) == "" {
+		log.Println("Surname is empty")
+		c.JSON((http.StatusBadRequest), gin.H{"error": "Surname is empty"})
+		return
+	}
+
+	// проверка заполненности почты
+	if strings.TrimSpace(user.Surname) == "" {
+		log.Println("Surname is empty")
+		c.JSON((http.StatusBadRequest), gin.H{"error": "Surname is empty"})
+		return
+	}
+
+	// проверка заполненности пароля
+	if strings.TrimSpace(user.Password) == "" {
+		log.Println("Pass is empty")
+		c.JSON((http.StatusBadRequest), gin.H{"error": "Pass is empty"})
+		return
+	}
+
+	// проверка заполненности номера телефона
+	if strings.TrimSpace(user.PhoneNumber) == "" {
+		log.Println("Phone number is empty")
+		c.JSON((http.StatusBadRequest), gin.H{"error": "Phone number is empty"})
+		return
+	}
+
+	// проверяем указана ли роль
+	if user.Role == "" {
+		log.Println("Role is empty")
+		c.JSON((http.StatusBadRequest), gin.H{"error": "Role is empty"})
+		return
+	}
+
+	// проверяем, нет ли пользователя с указанной почтой или номером телефона
+	userCheck, err := u.userService.UserCheck(user.PhoneNumber, user.Email)
+	if err != nil {
+		log.Println(err)
+		c.JSON((http.StatusConflict), gin.H{"error": err.Error()})
+		return
+	}
+	// если нет - отклоняем
+	if userCheck {
+		log.Println("Email or phone number already exist")
+		c.JSON((http.StatusConflict), gin.H{"error": "Email or phone number already exist"})
+		return
+	}
+
+	userId, err := u.userService.AdminCreate(user)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"verificatorID": verificatorID})
+	c.JSON(http.StatusOK, gin.H{"newUserId": userId})
+
+	// // если указанная роль - админ
+	// if user.Role == models.RoleAdmin {
+	// 	userID, err := u.userService.AdminCreate(user)
+	// 	if err != nil {
+	// 		log.Println(err)
+	// 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+	// 		return
+	// 	}
+	// 	c.JSON(http.StatusOK, gin.H{"newUserId": userID})
+
+	// 	// если указанная роль - верификатор
+	// } else if user.Role == models.RoleVerificator {
+	// 	userID, err := u.userService.VerificatorCreate(user)
+	// 	if err != nil {
+	// 		log.Println(err)
+	// 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+	// 		return
+	// 	}
+	// 	c.JSON(http.StatusOK, gin.H{"newUserId": userID})
+
+	// } else {
+	// 	log.Println("wrong role")
+	// 	c.JSON((http.StatusBadRequest), gin.H{"error": "wrong role"})
+	// 	return
+	// }
 }
 
-// создание админа
-func (u *UsersHandler) CreateAdmin(c *gin.Context) {
-	// получаем с фронта админа
-	var admin users.User
-	if err := c.ShouldBindJSON(&admin); err != nil {
-		log.Println("Error in ShouldBindJSON", err)
-		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
-		return
-	}
+// получение списка юзеров с фильтром на роль
+func (u *UsersHandler) GetAllUsers(c *gin.Context) {
+	// получаем роль из параметров
+	param := c.Query("role")
+	role := models.Role(param)
 
-	admin.Role = users.RoleAdmin
-
-	adminID, err := u.userService.AdminCreate(admin)
+	users, err := u.userService.UsersByRoleGet(role)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"adminID": adminID})
-}
-
-// список админов
-func (u *UsersHandler) GetAdmins(c *gin.Context) {
-	admins, err := u.userService.AdminsGet()
-	if err != nil {
-		log.Println(err)
-		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"admins": admins})
-}
-
-// список верификаторов
-func (u *UsersHandler) GetVerificators(c *gin.Context) {
-	verificators, err := u.userService.VerificatorsGet()
-	if err != nil {
-		log.Println(err)
-		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"verificators": verificators})
+	c.JSON(http.StatusOK, gin.H{"users": users})
 }
