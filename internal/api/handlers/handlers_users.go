@@ -289,7 +289,7 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 		return
 	}
 
-	userId, err := u.userService.AdminCreate(user)
+	userId, err := u.userService.AdminAdd(user)
 	if err != nil {
 		log.Println(err)
 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
@@ -297,32 +297,6 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"newUserId": userId})
-
-	// // если указанная роль - админ
-	// if user.Role == models.RoleAdmin {
-	// 	userID, err := u.userService.AdminCreate(user)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
-	// 		return
-	// 	}
-	// 	c.JSON(http.StatusOK, gin.H{"newUserId": userID})
-
-	// 	// если указанная роль - верификатор
-	// } else if user.Role == models.RoleVerificator {
-	// 	userID, err := u.userService.VerificatorCreate(user)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
-	// 		return
-	// 	}
-	// 	c.JSON(http.StatusOK, gin.H{"newUserId": userID})
-
-	// } else {
-	// 	log.Println("wrong role")
-	// 	c.JSON((http.StatusBadRequest), gin.H{"error": "wrong role"})
-	// 	return
-	// }
 }
 
 // получение списка юзеров с фильтром на роль
@@ -339,4 +313,42 @@ func (u *UsersHandler) GetAllUsers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"users": users})
+}
+
+// изменение роли пользователя
+func (u *UsersHandler) ChangeRole(c *gin.Context) {
+	// получаем с фронта новую роль
+	var role models.Role
+	if err := c.ShouldBindJSON(&role); err != nil {
+		log.Println("Error in ShouldBindJSON", err)
+		c.JSON((http.StatusBadRequest), gin.H{"error": err.Error()})
+		return
+	}
+
+	// получаем id пользователя из параметров
+	idStr := c.Param("user_id")
+	userID, err := uuid.Parse(idStr)
+	if err != nil {
+		log.Println("Error in parse uuid", err)
+		c.JSON((http.StatusBadRequest), gin.H{"error": "Error in parse uuid"})
+		return
+	}
+
+	// меняем ему роль
+	err = u.userService.RoleChange(userID, role)
+	if err != nil {
+		log.Println(err)
+		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+		return
+	}
+
+	// получаем обновленного пользователя
+	user, err := u.userService.UserGet(userID)
+	if err != nil {
+		log.Println(err)
+		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user": user})
 }

@@ -47,9 +47,9 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 	}
 
 	// проверка заполненности почты
-	if strings.TrimSpace(User.Surname) == "" {
-		log.Println("Surname is empty")
-		c.JSON((http.StatusBadRequest), gin.H{"error": "Surname is empty"})
+	if strings.TrimSpace(User.Email) == "" {
+		log.Println("Email is empty")
+		c.JSON((http.StatusBadRequest), gin.H{"error": "Email is empty"})
 		return
 	}
 
@@ -81,9 +81,6 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 		c.JSON((http.StatusConflict), gin.H{"error": "Email or phone number already exist"})
 		return
 	}
-
-	// применяем роль по умолчанию
-	User.Role = models.RoleBasic
 
 	// добавляем пользователя в БД
 	userID, err := u.userService.UserAdd(User)

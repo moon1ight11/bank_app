@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE SCHEMA IF NOT EXISTS bank_app;
 
-CREATE TYPE bank_app.ROLES AS ENUM ('Basic', 'Verificator', 'Admin') ;
+CREATE TYPE bank_app.ROLES AS ENUM ('Basic', 'Verificator', 'Admin');
 CREATE TYPE bank_app.CURRENCIES AS ENUM ('USD', 'EUR', 'RUB');
 
 CREATE TABLE

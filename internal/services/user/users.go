@@ -55,9 +55,11 @@ func (u *UsersService) UserVerification(User models.UserAutorization) (models.Us
 	return user, nil
 }
 
-// добавление пользователя
+// добавление базового пользователя
 func (u *UsersService) UserAdd(User models.UserRegister) (uuid.UUID, error) {
-	UserID, err := u.usersRepo.CreateUser(User.Name, User.Surname, User.Email, User.PhoneNumber, User.Password)
+	User.Role = models.RoleBasic
+
+	UserID, err := u.usersRepo.CreateUser(User.Name, User.Surname, User.Email, User.PhoneNumber, User.Password, string(User.Role))
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -65,7 +67,24 @@ func (u *UsersService) UserAdd(User models.UserRegister) (uuid.UUID, error) {
 	return UserID, nil
 }
 
-// получение пользователя
+// создание админа/верификатора
+func (u *UsersService) AdminAdd(admin models.UserRegister) (uuid.UUID, error) {
+	adminID, err := u.usersRepo.CreateUser(
+		admin.Name,
+		admin.Surname,
+		admin.Email,
+		admin.PhoneNumber,
+		admin.Password,
+		string(admin.Role),
+	)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return adminID, nil
+}
+
+// получение конкретного пользователя
 func (u *UsersService) UserGet(UserID uuid.UUID) (models.UserGet, error) {
 	User, err := u.usersRepo.GetUserByID(UserID)
 	if err != nil {
@@ -82,6 +101,32 @@ func (u *UsersService) UserGet(UserID uuid.UUID) (models.UserGet, error) {
 	user.Role = models.Role(User.Role)
 
 	return user, nil
+}
+
+// список пользователей с указанной ролью
+func (u *UsersService) UsersByRoleGet(role models.Role) ([]models.UserGet, error) {
+	usersRepo, err := u.usersRepo.GetUsersByRole(string(role))
+	if err != nil {
+		return nil, err
+	}
+
+	var usersApi []models.UserGet
+
+	for i := range usersRepo {
+		var userApi models.UserGet
+
+		userApi.Id = usersRepo[i].ID
+		userApi.Name = usersRepo[i].Name
+		userApi.Surname = usersRepo[i].Surname
+		userApi.Email = usersRepo[i].Email
+		userApi.PhoneNumber = usersRepo[i].PhoneNumber
+		userApi.Timezone = usersRepo[i].Timezone
+		userApi.Role = models.Role(usersRepo[i].Role)
+
+		usersApi = append(usersApi, userApi)
+	}
+
+	return usersApi, nil
 }
 
 // обновление пользователя
@@ -160,61 +205,24 @@ func (u *UsersService) UserDelete(userID uuid.UUID) error {
 	return nil
 }
 
-// // создание верификатора
-// func (u *UsersService) VerificatorCreate(verificator models.UserRegister) (uuid.UUID, error) {
-// 	verificatorID, err := u.usersRepo.CreateVerificator(
-// 		verificator.Name,
-// 		verificator.Surname,
-// 		verificator.Email,
-// 		verificator.PhoneNumber,
-// 		verificator.Password,
-// 	)
-// 	if err != nil {
-// 		return uuid.Nil, err
-// 	}
-
-// 	return verificatorID, nil
-// }
-
-// создание админа
-func (u *UsersService) AdminCreate(admin models.UserRegister) (uuid.UUID, error) {
-	adminID, err := u.usersRepo.CreateAdmin(
-		admin.Name,
-		admin.Surname,
-		admin.Email,
-		admin.PhoneNumber,
-		admin.Password,
-		string(admin.Role),
-	)
+// изменение роли пользователя
+func (u *UsersService) RoleChange(userID uuid.UUID, role models.Role) error {
+	// получаем пользователя по id
+	user, err := u.UserGet(userID)
 	if err != nil {
-		return uuid.Nil, err
+		return err
 	}
 
-	return adminID, nil
-}
+	// проверяем, не совпадает ли его роль с новой
+	if user.Role == role {
+		return fmt.Errorf("role already set")
+	}
 
-// список пользователей с указанной ролью
-func (u *UsersService) UsersByRoleGet(role models.Role) ([]models.UserGet, error) {
-	usersRepo, err := u.usersRepo.GetUsersByRole(string(role))
+	// меняем роль в БД
+	err = u.usersRepo.UpdateRole(string(role), userID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var usersApi []models.UserGet
-
-	for i := range usersRepo {
-		var userApi models.UserGet
-
-		userApi.Id = usersRepo[i].ID
-		userApi.Name = usersRepo[i].Name
-		userApi.Surname = usersRepo[i].Surname
-		userApi.Email = usersRepo[i].Email
-		userApi.PhoneNumber = usersRepo[i].PhoneNumber
-		userApi.Timezone = usersRepo[i].Timezone
-		userApi.Role = models.Role(usersRepo[i].Role)
-
-		usersApi = append(usersApi, userApi)
-	}
-
-	return usersApi, nil
+	return nil
 }

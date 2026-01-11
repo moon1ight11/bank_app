@@ -95,3 +95,18 @@ func (db *Repo) UpdateTZ(newTZ string, userID uuid.UUID, tx *sql.Tx) error {
 
 	return nil
 }
+
+// изменение роли
+func (db *Repo) UpdateRole(role string, userID uuid.UUID) error {
+	query := `
+				UPDATE bank_app.users
+				SET role = $1, updated_at = NOW()
+				WHERE id = $2
+			`
+	_, err := db.DB.Exec(query, role, userID)
+	if err != nil {
+		return fmt.Errorf("Error in UpdateRole query: %w", err)
+	}
+
+	return nil
+}

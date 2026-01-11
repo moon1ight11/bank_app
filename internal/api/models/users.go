@@ -33,7 +33,7 @@ type UserUpdate struct {
 	Surname     *string   `json:"surname"`
 	Password    *string   `json:"password"`
 	PhoneNumber *string   `json:"phone_number"`
-	Email       *string   `json:"email"`
+	Email       *string   `json:"email" binding:"required,email"`
 	Timezone    *string   `json:"timezone"`
 }
 

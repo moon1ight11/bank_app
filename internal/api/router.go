@@ -46,7 +46,7 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 
 	// группировка роутов
 	authGroup := r.ginEngine.Group("/api/v1/auth")
-	userGroup := r.ginEngine.Group("/api/v1/user")
+	userGroup := r.ginEngine.Group("/api/v1/basic")
 	verificatorGroup := r.ginEngine.Group("/api/v1/verificator")
 	adminGroup := r.ginEngine.Group("/api/v1/admin")
 
@@ -68,13 +68,13 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 	// разлогин
 	authGroup.GET("/sign-out", r.authHandler.SignOut)
 
-	// ЮЗЕР // --- любые верифицированные пользователи
+	// БАЗОВЫЙ // --- любые верифицированные пользователи
 	// получение данных пользователя
-	userGroup.GET("/profile", r.usersHandler.GetUser)
+	userGroup.GET("/user", r.usersHandler.GetUser)
 	// обновление пользователя
-	userGroup.PATCH("/profile", r.usersHandler.UpdateUser)
+	userGroup.PATCH("/user", r.usersHandler.UpdateUser)
 	// удаление пользователя
-	userGroup.DELETE("/profile", r.usersHandler.DeleteUser)
+	userGroup.DELETE("/user", r.usersHandler.DeleteUser)
 	// создание нового счета
 	userGroup.POST("/accounts", r.accountsHandler.CreateAccount)
 	// список счетов пользвателя
@@ -103,4 +103,6 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 	adminGroup.POST("/users", r.usersHandler.CreateAdminOrVerificator)
 	// список админов или верификаторов
 	adminGroup.GET("/users", r.usersHandler.GetAllUsers)
+	// обновление роли пользователя
+	adminGroup.PATCH("/users", r.usersHandler.ChangeRole)
 }
