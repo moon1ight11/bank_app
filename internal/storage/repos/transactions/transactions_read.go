@@ -2,12 +2,13 @@ package transactions
 
 import (
 	"bank_app/internal/storage/repos/models"
+	"context"
 	"fmt"
 	"github.com/google/uuid"
 )
 
 // получение всех транзакций пользователя
-func (db *Repo) GetAllUsersTransactions(userID uuid.UUID) ([]models.Transaction, error) {
+func (db *Repo) GetAllUsersTransactions(ctx context.Context, userID uuid.UUID) ([]models.Transaction, error) {
 	query := `
 				SELECT id, user_from, account_from, user_to, account_to, amount, currency, timestamp
 				FROM bank_app.transactions
@@ -15,9 +16,10 @@ func (db *Repo) GetAllUsersTransactions(userID uuid.UUID) ([]models.Transaction,
 				ORDER BY timestamp DESC
 			`
 	var transactions []models.Transaction
-	rows, err := db.DB.Query(query, userID)
+
+	rows, err := db.DB.QueryContext(ctx, query, userID)
 	if err != nil {
-		return nil, fmt.Errorf("Error in GetAllUsersTransactions query: %w", err)
+		return nil, fmt.Errorf("error in GetAllUsersTransactions query: %w", err)
 	}
 	defer rows.Close()
 
@@ -34,7 +36,7 @@ func (db *Repo) GetAllUsersTransactions(userID uuid.UUID) ([]models.Transaction,
 			&transaction.Timestamp,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("Error in GetAllUsersTransactions scan: %w", err)
+			return nil, fmt.Errorf("error in GetAllUsersTransactions scan: %w", err)
 		}
 		transactions = append(transactions, transaction)
 	}
@@ -42,16 +44,16 @@ func (db *Repo) GetAllUsersTransactions(userID uuid.UUID) ([]models.Transaction,
 }
 
 // получение транзакций конкретного счета
-func (db *Repo) GetTransactionsByAccount(userID uuid.UUID, accountID uuid.UUID) ([]models.Transaction, error) {
+func (db *Repo) GetTransactionsByAccount(ctx context.Context, userID uuid.UUID, accountID uuid.UUID) ([]models.Transaction, error) {
 	query := `
 				SELECT id, user_from, account_from, user_to, account_to, amount, currency, timestamp
 				FROM bank_app.transactions
 				WHERE (user_from = $1 AND account_from = $2) OR (user_to = $1 AND account_to = $2)
 			`
 	var transactions []models.Transaction
-	rows, err := db.DB.Query(query, userID, accountID)
+	rows, err := db.DB.QueryContext(ctx, query, userID, accountID)
 	if err != nil {
-		return nil, fmt.Errorf("Error in GetTransactionsByAccount query: %w", err)
+		return nil, fmt.Errorf("error in GetTransactionsByAccount query: %w", err)
 	}
 	defer rows.Close()
 
@@ -68,7 +70,7 @@ func (db *Repo) GetTransactionsByAccount(userID uuid.UUID, accountID uuid.UUID) 
 			&transaction.Timestamp,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("Error in GetTransactionsByAccount scan: %w", err)
+			return nil, fmt.Errorf("error in GetTransactionsByAccount scan: %w", err)
 		}
 		transactions = append(transactions, transaction)
 	}
@@ -76,7 +78,7 @@ func (db *Repo) GetTransactionsByAccount(userID uuid.UUID, accountID uuid.UUID) 
 }
 
 // получение одной транзакции
-func (db *Repo) GetTransactionByID(transactionID uuid.UUID, userID uuid.UUID) (models.Transaction, error) {
+func (db *Repo) GetTransactionByID(ctx context.Context, transactionID uuid.UUID, userID uuid.UUID) (models.Transaction, error) {
 	query := `
 				SELECT id, user_from, account_from, user_to, account_to, amount, currency, timestamp
 				FROM bank_app.transactions
@@ -84,7 +86,7 @@ func (db *Repo) GetTransactionByID(transactionID uuid.UUID, userID uuid.UUID) (m
 			`
 	var transaction models.Transaction
 
-	err := db.DB.QueryRow(query, userID, transactionID).Scan(
+	err := db.DB.QueryRowContext(ctx, query, userID, transactionID).Scan(
 		&transaction.ID,
 		&transaction.UserFrom,
 		&transaction.AccountFrom,

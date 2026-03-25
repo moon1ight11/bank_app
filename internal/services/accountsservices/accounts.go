@@ -1,4 +1,4 @@
-package account
+package accountsservices
 
 import (
 	"bank_app/internal/storage/repos/accounts"

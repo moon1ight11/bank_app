@@ -16,7 +16,7 @@ func Auth(jwtService jwt.TokenService) gin.HandlerFunc {
 		value, err := c.Cookie("cookie")
 		if err != nil {
 			log.Println("Error in get value from cookie")
-			c.JSON((http.StatusForbidden), gin.H{"error": err.Error()})
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			c.Abort()
 			return
 		}
@@ -50,7 +50,7 @@ func AuthUser() gin.HandlerFunc {
 		UserRole, exist := c.Get("UserRole")
 		if !exist {
 			log.Println("Error in get User role")
-			c.JSON((http.StatusForbidden), gin.H{"error": "User role not found"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "User role not found"})
 			c.Abort()
 			return
 		}
@@ -72,7 +72,7 @@ func AuthVerificator() gin.HandlerFunc {
 		UserRole, exist := c.Get("UserRole")
 		if !exist {
 			log.Println("Error in get User role")
-			c.JSON((http.StatusForbidden), gin.H{"error": "User role not found"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "User role not found"})
 			c.Abort()
 			return
 		}
@@ -94,7 +94,7 @@ func AuthAdmin() gin.HandlerFunc {
 		UserRole, exist := c.Get("UserRole")
 		if !exist {
 			log.Println("Error in get User role")
-			c.JSON((http.StatusForbidden), gin.H{"error": "User role not found"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "User role not found"})
 			c.Abort()
 			return
 		}

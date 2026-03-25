@@ -1,6 +1,7 @@
 package transactions
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
@@ -8,6 +9,7 @@ import (
 
 // создание транзакции
 func (db *Repo) CreateTransaction(
+	ctx context.Context,
 	userFrom uuid.UUID,
 	accountFrom uuid.UUID,
 	userTo uuid.UUID,
@@ -22,17 +24,18 @@ func (db *Repo) CreateTransaction(
 				RETURNING id
 			`
 	var transactionID uuid.UUID
-	err := tx.QueryRow(
-		query, 
-		userFrom, 
-		accountFrom, 
+	err := tx.QueryRowContext(
+		ctx,
+		query,
+		userFrom,
+		accountFrom,
 		userTo,
 		accountTo,
 		amount,
 		currency,
-		).Scan(&transactionID)
+	).Scan(&transactionID)
 	if err != nil {
-		return uuid.Nil, fmt.Errorf("Error in CreateTransaction query: %w", err)
+		return uuid.Nil, fmt.Errorf("error in CreateTransaction query: %w", err)
 	}
 
 	return transactionID, nil

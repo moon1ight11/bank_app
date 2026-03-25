@@ -2,12 +2,15 @@ package main
 
 import (
 	"bank_app/internal/api"
-	"bank_app/internal/api/handlers"
+	accountshandlers "bank_app/internal/api/handlers/accounts"
+	"bank_app/internal/api/handlers/authentification"
+	transactionshandlers "bank_app/internal/api/handlers/transactions"
+	usershandlers "bank_app/internal/api/handlers/users"
 	"bank_app/internal/api/jwt"
 	"bank_app/internal/config"
-	"bank_app/internal/services/user"
-	"bank_app/internal/services/account"
-	"bank_app/internal/services/transaction"
+	"bank_app/internal/services/accountsservices"
+	transactionsservice "bank_app/internal/services/transactionsservices"
+	usersservice "bank_app/internal/services/usersservices"
 	"bank_app/internal/storage"
 	"bank_app/internal/storage/repos/accounts"
 	"bank_app/internal/storage/repos/transactions"
@@ -41,14 +44,14 @@ func main() {
 	accountsRepo := accounts.NewAccountsRepo(db)
 	transactionsRepo := transactions.NewTransactionsRepo(db)
 
-	usersService := user.NewUsersService(usersRepo)
-	accountsService := account.NewAccountsService(accountsRepo, transactionsRepo)
-	transactionsService := transaction.NewTransactionsService(transactionsRepo, accountsRepo)
+	usersService := usersservice.NewUsersService(usersRepo)
+	accountsService := accountsservices.NewAccountsService(accountsRepo, transactionsRepo)
+	transactionsService := transactionsservice.NewTransactionsService(transactionsRepo, accountsRepo)
 
-	authHandler := handlers.NewAuthHandler(usersService, jwtService)
-	usersHandler := handlers.NewUsersHandler(usersService, jwtService)
-	accountsHandler := handlers.NewAccountsHandler(accountsService, jwtService)
-	transactionsHandler := handlers.NewTransactionsHandler(transactionsService, jwtService)
+	authHandler := authentificationhandlers.NewAuthHandler(usersService, jwtService)
+	usersHandler := usershandlers.NewUsersHandler(usersService, jwtService)
+	accountsHandler := accountshandlers.NewAccountsHandler(accountsService, jwtService)
+	transactionsHandler := transactionshandlers.NewTransactionsHandler(transactionsService, jwtService)
 
 	// инициализация роутера
 	router := api.NewRouter(authHandler, usersHandler, accountsHandler, transactionsHandler)

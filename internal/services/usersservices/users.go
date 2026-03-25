@@ -1,4 +1,4 @@
-package user
+package usersservice
 
 import (
 	"bank_app/internal/storage/repos/users"
@@ -9,5 +9,7 @@ type UsersService struct {
 }
 
 func NewUsersService(usersRepo *users.Repo) *UsersService {
-	return &UsersService{usersRepo: usersRepo}
+	return &UsersService{
+		usersRepo: usersRepo,
+	}
 }

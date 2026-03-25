@@ -1,4 +1,4 @@
-package transaction
+package transactionsservice
 
 import (
 	"bank_app/internal/storage/repos/accounts"

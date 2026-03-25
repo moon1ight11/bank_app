@@ -13,17 +13,17 @@ const (
 
 // регистрация юзера
 type UserRegister struct {
-	Name    string `json:"name"`
-	Surname string `json:"surname"`
-	Role    Role   `json:"role"`
+	Name        string `json:"name"`
+	Surname     string `json:"surname"`
+	PhoneNumber string `json:"phone_number"`
+	Role        Role   `json:"role"`
 	UserAutorization
 }
 
 // авторизация юзера
 type UserAutorization struct {
-	Email       string `json:"email" binding:"required,email"`
-	PhoneNumber string `json:"phone_number"`
-	Password    string `json:"password"`
+	Email string `json:"email" binding:"required,email"`
+	Password string `json:"password"`
 }
 
 // обновление юзера
@@ -37,6 +37,7 @@ type UserUpdate struct {
 	Timezone    *string   `json:"timezone"`
 }
 
+// получение пользователя
 type UserGet struct {
 	Id       uuid.UUID `json:"user_id"`
 	Timezone string    `json:"timezone"`

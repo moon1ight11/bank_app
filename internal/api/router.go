@@ -9,18 +9,18 @@ import (
 )
 
 type Router struct {
-	authHandler         *handlers.AuthHandler
-	usersHandler        *handlers.UsersHandler
-	accountsHandler     *handlers.AccountsHandler
-	transactionsHandler *handlers.TransactionsHandler
+	authHandler         handlers.AuthHandlersInterface
+	usersHandler        handlers.UsersHandlersInterface
+	accountsHandler     handlers.AccountsHandlersInterface
+	transactionsHandler handlers.TransactionsHandlersInterface
 	ginEngine           *gin.Engine
 }
 
 func NewRouter(
-	authHandler *handlers.AuthHandler,
-	usersHandler *handlers.UsersHandler,
-	accountsHandler *handlers.AccountsHandler,
-	transactionsHandler *handlers.TransactionsHandler,
+	authHandler handlers.AuthHandlersInterface,
+	usersHandler handlers.UsersHandlersInterface,
+	accountsHandler handlers.AccountsHandlersInterface,
+	transactionsHandler handlers.TransactionsHandlersInterface,
 ) *Router {
 	return &Router{
 		authHandler:         authHandler,

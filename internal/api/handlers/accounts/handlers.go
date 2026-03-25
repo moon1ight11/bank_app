@@ -1,0 +1,143 @@
+package accountshandlers
+
+import (
+	"bank_app/internal/api/helpers"
+	"bank_app/internal/api/models"
+	"context"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+)
+
+// создание нового счёта
+func (a *AccountsHandler) CreateAccount(c *gin.Context) {
+	// получаем userID из контекста
+	userID, err := helpers.ExtractAndValidateContextUserId(c)
+	if err != nil {
+		log.Println("Error in EAVCUI", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var newAccount models.AccountCreate
+
+	// получаем валюту счета с фронта
+	if err := c.ShouldBindJSON(&newAccount); err != nil {
+		log.Println("Error in ShouldBindJSON", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// устанавливаем владельцем счета пользователя
+	newAccount.UserID = userID
+
+	// создаем контекст с таймаутом
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	// создаем счет
+	_, err = a.accountsService.AccountAdd(ctx, newAccount)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "sucessful"})
+}
+
+// список счетов пользователя
+func (a *AccountsHandler) GetAllUserAccounts(c *gin.Context) {
+	// получаем userID из контекста
+	userID, err := helpers.ExtractAndValidateContextUserId(c)
+	if err != nil {
+		log.Println("Error in EAVCUI", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// создаем контекст с таймаутом
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	// получаем список счетов конкретного пользователя
+	accounts, err := a.accountsService.AllAccountsGet(ctx, userID)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"accounts": accounts})
+}
+
+// конкретный счет пользователя
+func (a *AccountsHandler) GetAccountById(c *gin.Context) {
+	// получаем userID из контекста
+	userID, err := helpers.ExtractAndValidateContextUserId(c)
+	if err != nil {
+		log.Println("Error in EAVCUI", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// получаем id счета из параметров
+	idStr := c.Param("account_id")
+	accountID, err := uuid.Parse(idStr)
+	if err != nil {
+		log.Println("Error in parse uuid", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
+		return
+	}
+
+	// создаем контекст с таймаутом
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	// получаем счет из БД
+	account, err := a.accountsService.AccountGet(ctx, userID, accountID)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"account": account})
+}
+
+// удаление счета
+func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
+	// получаем userID из контекста
+	userID, err := helpers.ExtractAndValidateContextUserId(c)
+	if err != nil {
+		log.Println("Error in EAVCUI", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// получаем id счета из параметров
+	idStr := c.Param("account_id")
+	accountID, err := uuid.Parse(idStr)
+	if err != nil {
+		log.Println("Error in parse uuid", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
+		return
+	}
+
+	// создаем контекст с таймаутом
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	// удаляем счет
+	err = a.accountsService.AccountDelete(ctx, userID, accountID)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "successfull delete"})
+}
