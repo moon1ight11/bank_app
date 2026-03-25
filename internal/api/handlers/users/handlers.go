@@ -145,7 +145,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"UpdatedUser": foundUser})
+	c.JSON(http.StatusOK, gin.H{"updated_user": foundUser})
 }
 
 // удаление пользователя
@@ -173,7 +173,7 @@ func (u *UsersHandler) DeleteUser(c *gin.Context) {
 	// обнуляем куки
 	c.SetCookie("cookie", "1", -1, "/", "", false, false)
 
-	c.JSON(http.StatusOK, gin.H{"message": "delete is complete"})
+	c.JSON(http.StatusOK, gin.H{"message": "successful delete"})
 }
 
 // создание админа или верификатора
@@ -210,7 +210,7 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"newUserId": userId})
+	c.JSON(http.StatusCreated, gin.H{"admin_or_verificator_id": userId})
 }
 
 // получение списка юзеров с фильтром на роль

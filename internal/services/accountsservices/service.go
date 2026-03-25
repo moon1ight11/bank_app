@@ -21,11 +21,13 @@ func (a *AccountsService) AccountAdd(ctx context.Context, newAccount models.Acco
 
 // вывод всех счетов пользователя
 func (a *AccountsService) AllAccountsGet(ctx context.Context, userID uuid.UUID) ([]models.AccountsGet, error) {
+	// получаем список всех аккаунтов пользователя
 	accountsRepo, err := a.accountsRepo.GetAccountsByUserId(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("error in AllAccountsGet: %w", err)
 	}
 
+	// приводим тип для ответа
 	var accounts []models.AccountsGet
 
 	for i := range(accountsRepo) {
@@ -48,7 +50,7 @@ func (a *AccountsService) AccountGet(ctx context.Context, userID uuid.UUID, acco
 	if err != nil {
 		return models.AccountsGet{}, fmt.Errorf("error in AccountGet: %w", err)
 	}
-
+ 
 	var account models.AccountsGet
 	account.ID = accountRepo.ID
 	account.UserID = accountRepo.UserID
@@ -60,11 +62,15 @@ func (a *AccountsService) AccountGet(ctx context.Context, userID uuid.UUID, acco
 
 // удаление счета
 func (a *AccountsService) AccountDelete(ctx context.Context, userID uuid.UUID, accountID uuid.UUID) error {
-	// нужно сделать атомарно !!!
-	
-	
+	// открываем ТХ
+	tx, err := a.accountsRepo.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("error in AccountDelete: %w", err)
+	}
+	defer tx.Rollback()
+
 	// получаем счет из БД
-	account, err := a.accountsRepo.GetAccountById(ctx, accountID, userID)
+	account, err := a.accountsRepo.GetAccountByIdTx(ctx, accountID, userID, tx)
 	if err != nil {
 		return fmt.Errorf("error in AccountDelete: %w", err)
 	}
@@ -75,10 +81,14 @@ func (a *AccountsService) AccountDelete(ctx context.Context, userID uuid.UUID, a
 	}
 
 	// если денег нет - удаляем счет
-	err = a.accountsRepo.DeleteAccount(ctx, accountID, userID)
+	err = a.accountsRepo.DeleteAccount(ctx, accountID, userID, tx)
 	if err != nil {
 		return fmt.Errorf("error in AccountDelete: %w", err)
 	}
+
+	if err := tx.Commit(); err != nil {
+        return fmt.Errorf("error committing transaction: %w", err)
+    }
 
 	return nil
 }

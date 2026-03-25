@@ -118,5 +118,5 @@ func (u *AuthHandler) SignOut(c *gin.Context) {
 
 	log.Println("user signed out", userID)
 
-	c.JSON(http.StatusOK, gin.H{"message": "success"})
+	c.JSON(http.StatusOK, gin.H{"message": "successful sign out"})
 }

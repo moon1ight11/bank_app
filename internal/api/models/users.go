@@ -13,8 +13,8 @@ const (
 
 // регистрация юзера
 type UserRegister struct {
-	Name        string `json:"name"`
-	Surname     string `json:"surname"`
+	Name        string `json:"name" binding:"required,min=2,max=50"`
+	Surname     string `json:"surname" binding:"required,min=2,max=50"`
 	PhoneNumber string `json:"phone_number"`
 	Role        Role   `json:"role"`
 	UserAutorization

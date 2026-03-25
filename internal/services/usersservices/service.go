@@ -179,7 +179,7 @@ func (u *UsersService) UserUpdate(
 	ID uuid.UUID,
 ) error {
 	// открываем транзакцию
-	transaction, err := u.usersRepo.DB.Begin()
+	transaction, err := u.usersRepo.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("error in UserUpdate: %w", err)
 	}

@@ -4,12 +4,11 @@ import (
 	"bank_app/internal/api/helpers"
 	"bank_app/internal/api/models"
 	"context"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // создание нового счёта
@@ -39,14 +38,14 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 	defer cancel()
 
 	// создаем счет
-	_, err = a.accountsService.AccountAdd(ctx, newAccount)
+	accountId, err := a.accountsService.AccountAdd(ctx, newAccount)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "sucessful"})
+	c.JSON(http.StatusCreated, gin.H{"account_id": accountId})
 }
 
 // список счетов пользователя
@@ -139,5 +138,5 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "successfull delete"})
+	c.JSON(http.StatusOK, gin.H{"message": "successful delete"})
 }

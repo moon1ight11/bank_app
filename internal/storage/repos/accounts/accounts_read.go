@@ -24,6 +24,24 @@ func (db *Repo) GetAccountById(ctx context.Context, accountID uuid.UUID, userID 
 	return account, nil
 }
 
+// получение счета по id и заморозка
+func (db *Repo) GetAccountByIdTx(ctx context.Context, accountID uuid.UUID, userID uuid.UUID, tx *sql.Tx) (GetAccount, error) {
+	query := `
+				SELECT id, user_id, balance, currency
+				FROM bank_app.accounts
+				WHERE user_id = $1 AND id = $2
+				FOR UPDATE
+			`
+	var account GetAccount
+
+	err := tx.QueryRowContext(ctx, query, userID, accountID).Scan(&account.ID, &account.UserID, &account.Balance, &account.Currency)
+	if err != nil {
+		return GetAccount{}, fmt.Errorf("error in GetAccountByIdTx query: %w", err)
+	}
+
+	return account, nil
+}
+
 // получение счетов по id пользователя
 func (db *Repo) GetAccountsByUserId(ctx context.Context, userID uuid.UUID) ([]GetAccount, error) {
 	query := `

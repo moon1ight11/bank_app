@@ -68,7 +68,7 @@ func (t *TransactionsHandler) GetAllAccountTransactions(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"transactions": transactions})
+	c.JSON(http.StatusOK, gin.H{"account_transactions": transactions})
 }
 
 // информация о конкретной транзакции
@@ -126,7 +126,7 @@ func (t *TransactionsHandler) CreateIncomingTransaction(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"transactionID": transactionID})
+	c.JSON(http.StatusOK, gin.H{"transaction_id": transactionID})
 }
 
 // списание со счета
@@ -150,7 +150,7 @@ func (t *TransactionsHandler) CreateOutcomingTransaction(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"transactionID": transactionID})
+	c.JSON(http.StatusOK, gin.H{"transaction_id": transactionID})
 }
 
 // трансфер
@@ -202,5 +202,5 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"transactionID": transactionID})
+	c.JSON(http.StatusOK, gin.H{"transaction_id": transactionID})
 }

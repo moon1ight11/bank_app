@@ -108,7 +108,7 @@ func (t *TransactionsService) TransactionIncoming(ctx context.Context, transacti
 	}
 
 	// открываем ТХ
-	tx, err := t.accountsRepo.DB.Begin()
+	tx, err := t.accountsRepo.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("error in TransactionIncoming: %w", err)
 	}
@@ -143,7 +143,9 @@ func (t *TransactionsService) TransactionIncoming(ctx context.Context, transacti
 	}
 
 	// если все ок - подтверждаем транзакцию
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+        return uuid.Nil, fmt.Errorf("error committing transaction: %w", err)
+    }
 	return transactionID, nil
 }
 
@@ -172,7 +174,7 @@ func (t *TransactionsService) TransactionOutcoming(ctx context.Context, transact
 	}
 
 	// открываем ТХ
-	tx, err := t.accountsRepo.DB.Begin()
+	tx, err := t.accountsRepo.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("error in TransactionOutcoming: %w", err)
 	}
@@ -213,7 +215,9 @@ func (t *TransactionsService) TransactionOutcoming(ctx context.Context, transact
 	}
 
 	// если все ок - подтверждаем транзакцию
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+        return uuid.Nil, fmt.Errorf("error committing transaction: %w", err)
+    }
 	return transactionID, nil
 }
 
@@ -247,7 +251,7 @@ func (t *TransactionsService) TransactionTransfer(ctx context.Context, transacti
 	}
 
 	// открываем ТХ
-	tx, err := t.accountsRepo.DB.Begin()
+	tx, err := t.accountsRepo.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("error in TransactionTransfer: %w", err)
 	}
@@ -288,6 +292,8 @@ func (t *TransactionsService) TransactionTransfer(ctx context.Context, transacti
 	}
 
 	// если все ок - подтверждаем транзакцию
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+        return uuid.Nil, fmt.Errorf("error committing transaction: %w", err)
+    }
 	return transactionID, nil
 }
