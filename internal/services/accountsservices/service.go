@@ -4,6 +4,7 @@ import (
 	"bank_app/internal/api/models"
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -14,6 +15,14 @@ func (a *AccountsService) AccountAdd(ctx context.Context, newAccount models.Acco
 	accountID, err := a.accountsRepo.CreateAccount(ctx, newAccount.UserID, string(newAccount.Currency))
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("error in AccountAdd: %w", err)
+	}
+
+	// устанавливаем в кэш счет
+	cacheKey := fmt.Sprintf("account_user:%s", newAccount.UserID.String())
+	if a.cacheService != nil {
+		if err := a.cacheService.Set(ctx, cacheKey, accountID, 10*time.Minute); err != nil {
+			return uuid.Nil, fmt.Errorf("error in accountAdd: %w; cachekey %s not set", err, cacheKey)
+		}
 	}
 
 	return accountID, nil
@@ -30,7 +39,7 @@ func (a *AccountsService) AllAccountsGet(ctx context.Context, userID uuid.UUID) 
 	// приводим тип для ответа
 	var accounts []models.AccountsGet
 
-	for i := range(accountsRepo) {
+	for i := range accountsRepo {
 		var account models.AccountsGet
 
 		account.ID = accountsRepo[i].ID
@@ -46,16 +55,35 @@ func (a *AccountsService) AllAccountsGet(ctx context.Context, userID uuid.UUID) 
 
 // вывод одного счета пользователя
 func (a *AccountsService) AccountGet(ctx context.Context, userID uuid.UUID, accountID uuid.UUID) (models.AccountsGet, error) {
+	// пробуем получить из кэша
+	cacheKey := fmt.Sprintf("user_account:%s", userID.String())
+
+	if a.cacheService != nil {
+		var cachedAccount models.AccountsGet
+		err := a.cacheService.Get(ctx, cacheKey, &cachedAccount)
+		if err == nil {
+			return cachedAccount, nil
+		}
+	}
+
+	// если нет -идем в бд
 	accountRepo, err := a.accountsRepo.GetAccountById(ctx, accountID, userID)
 	if err != nil {
 		return models.AccountsGet{}, fmt.Errorf("error in AccountGet: %w", err)
 	}
- 
+
 	var account models.AccountsGet
 	account.ID = accountRepo.ID
 	account.UserID = accountRepo.UserID
 	account.Balance = accountRepo.Balance
 	account.Currency = models.Currency(accountRepo.Currency)
+
+	// устанавливаем в кэш счет
+	if a.cacheService != nil {
+		if err := a.cacheService.Set(ctx, cacheKey, accountID, 10*time.Minute); err != nil {
+			return models.AccountsGet{}, fmt.Errorf("error in accountGet: %w; cachekey %s not set", err, cacheKey)
+		}
+	}
 
 	return account, nil
 }
@@ -86,9 +114,19 @@ func (a *AccountsService) AccountDelete(ctx context.Context, userID uuid.UUID, a
 		return fmt.Errorf("error in AccountDelete: %w", err)
 	}
 
+	// коммитим транзакцию
 	if err := tx.Commit(); err != nil {
-        return fmt.Errorf("error committing transaction: %w", err)
-    }
+		return fmt.Errorf("error committing transaction: %w", err)
+	}
+
+	// удаляем из кэша счет
+	cacheKey := fmt.Sprintf("user_account:%s", userID.String())
+
+	if a.cacheService != nil {
+		if err := a.cacheService.Set(ctx, cacheKey, accountID, 10*time.Minute); err != nil {
+			return fmt.Errorf("error in AccountDelete: %w; cachekey %s not set", err, cacheKey)
+		}
+	}
 
 	return nil
 }

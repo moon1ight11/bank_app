@@ -4,6 +4,8 @@ import (
 	"bank_app/internal/api/models"
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -83,6 +85,14 @@ func (u *UsersService) UserAdd(ctx context.Context, user models.UserRegister) (u
 		return uuid.Nil, fmt.Errorf("error in UserAdd: %w", err)
 	}
 
+	// добавляем пользователя в кэш
+	cacheKey := fmt.Sprintf("user:%s", UserID.String())
+	if u.cacheService != nil {
+		if err := u.cacheService.Set(ctx, cacheKey, UserID, 10*time.Minute); err != nil {
+			return uuid.Nil, fmt.Errorf("error in userAdd: %w; cachekey %s not set", err, cacheKey)
+		}
+	}
+
 	return UserID, nil
 }
 
@@ -117,11 +127,30 @@ func (u *UsersService) AdminAdd(ctx context.Context, admin models.UserRegister) 
 		return uuid.Nil, fmt.Errorf("error in AdminAdd: %w", err)
 	}
 
+	// добавляем пользователя в кэш
+	cacheKey := fmt.Sprintf("user:%s", adminID.String())
+	if u.cacheService != nil {
+		if err := u.cacheService.Set(ctx, cacheKey, adminID, 10*time.Minute); err != nil {
+			return uuid.Nil, fmt.Errorf("error in adminAdd: %w; cachekey %s not set", err, cacheKey)
+		}
+	}
+
 	return adminID, nil
 }
 
 // получение конкретного пользователя
 func (u *UsersService) UserGet(ctx context.Context, userID uuid.UUID) (models.UserGet, error) {
+	// сначала идем в кэш
+	cacheKey := fmt.Sprintf("user:%s", userID.String())
+
+	if u.cacheService != nil {
+		var cachedUser models.UserGet
+		err := u.cacheService.Get(ctx, cacheKey, &cachedUser)
+		if err == nil {
+			return cachedUser, nil
+		}
+	}
+
 	// получаем пользователя по id
 	userRepo, err := u.usersRepo.GetUserByID(ctx, userID)
 	if err != nil {
@@ -137,6 +166,13 @@ func (u *UsersService) UserGet(ctx context.Context, userID uuid.UUID) (models.Us
 	user.PhoneNumber = userRepo.PhoneNumber
 	user.Timezone = userRepo.Timezone
 	user.Role = models.Role(userRepo.Role)
+
+	// устанавливаем в кэш
+	if u.cacheService != nil {
+		if err := u.cacheService.Set(ctx, cacheKey, userID, 10*time.Minute); err != nil {
+			return models.UserGet{}, fmt.Errorf("error in userGet: %w; cachekey %s not set", err, cacheKey)
+		}
+	}
 
 	return user, nil
 }
@@ -259,6 +295,18 @@ func (u *UsersService) UserUpdate(
 		return fmt.Errorf("error committing transaction: %w", err)
 	}
 
+	cacheKey := fmt.Sprintf("user:%s", ID.String())
+
+	// удаляем старую запись из кэша и добавляем новую
+	if u.cacheService != nil {
+		if err := u.cacheService.Delete(ctx, cacheKey); err != nil {
+			return fmt.Errorf("error in userUpdate: %w; cachekey %s not delete", err, cacheKey)
+		}
+		if err := u.cacheService.Set(ctx, cacheKey, ID, 10*time.Minute); err != nil {
+			return fmt.Errorf("error in userUpdate: %w; cachekey %s not set", err, cacheKey)
+		}
+	}
+
 	return nil
 }
 
@@ -268,6 +316,15 @@ func (u *UsersService) UserDelete(ctx context.Context, userID uuid.UUID) error {
 	err := u.usersRepo.DeleteUser(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("error in UserDelete: %w", err)
+	}
+
+	cacheKey := fmt.Sprintf("user:%s", userID.String())
+
+	// удаление из кэша
+	if u.cacheService != nil {
+		if err := u.cacheService.Delete(ctx, cacheKey); err != nil {
+			return fmt.Errorf("error in userUpdate: %w; cachekey %s not delete", err, cacheKey)
+		}
 	}
 
 	return nil
@@ -290,6 +347,15 @@ func (u *UsersService) RoleChange(ctx context.Context, userID uuid.UUID, role mo
 	err = u.usersRepo.UpdateRole(ctx, string(role), userID)
 	if err != nil {
 		return fmt.Errorf("error in RoleChange: %w", err)
+	}
+
+	cacheKey := fmt.Sprintf("user:%s", userID.String())
+	
+	// удаление из кэша
+	if u.cacheService != nil {
+		if err := u.cacheService.Delete(ctx, cacheKey); err != nil {
+			return fmt.Errorf("error in userUpdate: %w; cachekey %s not delete", err, cacheKey)
+		}
 	}
 
 	return nil

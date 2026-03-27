@@ -6,7 +6,6 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"log"
 	"net/http"
 	"time"
 )
@@ -16,7 +15,7 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		log.Println("Error in EAVCUI", err)
+		a.logger.Error("Error in CreateAccount", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -25,7 +24,7 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 
 	// получаем валюту счета с фронта
 	if err := c.ShouldBindJSON(&newAccount); err != nil {
-		log.Println("Error in ShouldBindJSON", err)
+		a.logger.Error("Error in CreateAccount", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -40,7 +39,7 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 	// создаем счет
 	accountId, err := a.accountsService.AccountAdd(ctx, newAccount)
 	if err != nil {
-		log.Println(err)
+		a.logger.Error("Error in CreateAccount", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -53,7 +52,7 @@ func (a *AccountsHandler) GetAllUserAccounts(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		log.Println("Error in EAVCUI", err)
+		a.logger.Error("Error in GetAllUserAccounts", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -65,7 +64,7 @@ func (a *AccountsHandler) GetAllUserAccounts(c *gin.Context) {
 	// получаем список счетов конкретного пользователя
 	accounts, err := a.accountsService.AllAccountsGet(ctx, userID)
 	if err != nil {
-		log.Println(err)
+		a.logger.Error("Error in GetAllUserAccounts", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -78,7 +77,7 @@ func (a *AccountsHandler) GetAccountById(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		log.Println("Error in EAVCUI", err)
+		a.logger.Error("Error in GetAccountById", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -87,7 +86,7 @@ func (a *AccountsHandler) GetAccountById(c *gin.Context) {
 	idStr := c.Param("account_id")
 	accountID, err := uuid.Parse(idStr)
 	if err != nil {
-		log.Println("Error in parse uuid", err)
+		a.logger.Error("Error in GetAccountById", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
 		return
 	}
@@ -99,7 +98,7 @@ func (a *AccountsHandler) GetAccountById(c *gin.Context) {
 	// получаем счет из БД
 	account, err := a.accountsService.AccountGet(ctx, userID, accountID)
 	if err != nil {
-		log.Println(err)
+		a.logger.Error("Error in GetAccountById", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -112,7 +111,7 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		log.Println("Error in EAVCUI", err)
+		a.logger.Error("Error in DeleteAccount", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -121,7 +120,7 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 	idStr := c.Param("account_id")
 	accountID, err := uuid.Parse(idStr)
 	if err != nil {
-		log.Println("Error in parse uuid", err)
+		a.logger.Error("Error in DeleteAccount", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
 		return
 	}
@@ -133,7 +132,7 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 	// удаляем счет
 	err = a.accountsService.AccountDelete(ctx, userID, accountID)
 	if err != nil {
-		log.Println(err)
+		a.logger.Error("Error in DeleteAccount", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

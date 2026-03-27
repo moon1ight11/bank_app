@@ -4,14 +4,12 @@ import (
 	"bank_app/internal/api/helpers"
 	"bank_app/internal/api/models"
 	"context"
-	"log"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // получение данных пользователя
@@ -19,7 +17,7 @@ func (u *UsersHandler) GetUser(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		log.Println("Error in EAVCUI", err)
+		u.logger.Error("Error in GetUser", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -31,7 +29,7 @@ func (u *UsersHandler) GetUser(c *gin.Context) {
 	// получаем пользователя
 	user, err := u.userService.UserGet(ctx, userID)
 	if err != nil {
-		log.Println(err)
+		u.logger.Error("Error in GetUser", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -44,7 +42,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		log.Println("Error in EAVCUI", err)
+		u.logger.Error("Error in UpdateUser", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -60,7 +58,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 
 	// получаем обновленного пользователя с фронта
 	if err := c.ShouldBindJSON(&updatedUser); err != nil {
-		log.Println("Error in ShouldBindJSON", err)
+		u.logger.Error("Error in UpdateUser", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
@@ -68,7 +66,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// если обновляется имя - чтобы было не пустое
 	if updatedUser.Name != nil {
 		if strings.TrimSpace(*updatedUser.Name) == "" {
-			log.Println("New name is empty")
+			u.logger.Error("Error in UpdateUser", "error:", "new name is empty")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "New name is empty"})
 			return
 		}
@@ -77,7 +75,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// если обновляется пароль - чтобы не был пустым
 	if updatedUser.Password != nil {
 		if strings.TrimSpace(*updatedUser.Password) == "" {
-			log.Println("New pass is empty")
+			u.logger.Error("Error in UpdateUser", "error:", "new pass is empty")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "New pass is empty"})
 			return
 		}
@@ -89,14 +87,14 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 		pattern := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
 		matched, err := regexp.MatchString(pattern, *updatedUser.Email)
 		if err != nil {
-			log.Println("Error in MatchString", err)
+			u.logger.Error("Error in UpdateUser", "error:", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		// если нет - отклоняем
 		if !matched {
-			log.Println("New email not looks like email")
+			u.logger.Error("Error in UpdateUser", "error:", "new email not looks like email")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "New email not looks like email"})
 			return
 		}
@@ -105,7 +103,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// если обновляется телефон
 	if updatedUser.PhoneNumber != nil {
 		if strings.TrimSpace(*updatedUser.PhoneNumber) == "" {
-			log.Println("New phone number is empty")
+			u.logger.Error("Error in UpdateUser", "error:", "new phone number is empty")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "New phone number is empty"})
 			return
 		}
@@ -114,7 +112,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// если обновляется временная зона
 	if updatedUser.Timezone != nil {
 		if strings.TrimSpace(*updatedUser.Timezone) == "" {
-			log.Println("New timezone is empty")
+			u.logger.Error("Error in UpdateUser", "error:", "new timezone is empty")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "New timezone is empty"})
 			return
 		}
@@ -132,7 +130,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 		updatedUser.ID,
 	)
 	if err != nil {
-		log.Println(err)
+		u.logger.Error("Error in UpdateUser", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -140,7 +138,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// получение структуры обновленного пользователя
 	foundUser, err := u.userService.UserGet(ctx, updatedUser.ID)
 	if err != nil {
-		log.Println(err)
+		u.logger.Error("Error in UpdateUser", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -153,7 +151,7 @@ func (u *UsersHandler) DeleteUser(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		log.Println("Error in EAVCUI", err)
+		u.logger.Error("Error in DeleteUser", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -165,7 +163,7 @@ func (u *UsersHandler) DeleteUser(c *gin.Context) {
 	// удаляем пользователя
 	err = u.userService.UserDelete(ctx, userID)
 	if err != nil {
-		log.Println(err)
+		u.logger.Error("Error in DeleteUser", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -181,7 +179,7 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 	// получаем с фронта пользователя
 	var user models.UserRegister
 	if err := c.ShouldBindJSON(&user); err != nil {
-		log.Println("Error in ShouldBindJSON", err)
+		u.logger.Error("Error in CreateAdminOrVerificator", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -194,7 +192,7 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 		strings.TrimSpace(user.PhoneNumber) == "" ||
 		user.Role == "" {
 
-		log.Println("One or more required fields are empty")
+		u.logger.Error("Error in CreateAdminOrVerificator", "error:", "one or more required fields are empty")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "All fields (Name, Surname, Email, Password, PhoneNumber, Role) are required"})
 		return
 	}
@@ -205,7 +203,7 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 
 	userId, err := u.userService.AdminAdd(ctx, user)
 	if err != nil {
-		log.Println(err)
+		u.logger.Error("Error in CreateAdminOrVerificator", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -225,7 +223,7 @@ func (u *UsersHandler) GetAllUsers(c *gin.Context) {
 
 	users, err := u.userService.UsersByRoleGet(ctx, role)
 	if err != nil {
-		log.Println(err)
+		u.logger.Error("Error in GetAllUsers", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -238,7 +236,7 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	// получаем с фронта новую роль
 	var role models.Role
 	if err := c.ShouldBindJSON(&role); err != nil {
-		log.Println("Error in ShouldBindJSON", err)
+		u.logger.Error("Error in ChangeRole", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -247,7 +245,7 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	idStr := c.Param("user_id")
 	userID, err := uuid.Parse(idStr)
 	if err != nil {
-		log.Println("Error in parse uuid", err)
+		u.logger.Error("Error in ChangeRole", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
 		return
 	}
@@ -259,7 +257,7 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	// меняем ему роль
 	err = u.userService.RoleChange(ctx, userID, role)
 	if err != nil {
-		log.Println(err)
+		u.logger.Error("Error in ChangeRole", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -267,7 +265,7 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	// получаем обновленного пользователя
 	user, err := u.userService.UserGet(ctx, userID)
 	if err != nil {
-		log.Println(err)
+		u.logger.Error("Error in ChangeRole", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

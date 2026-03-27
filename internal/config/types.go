@@ -7,6 +7,21 @@ type Config struct {
 	Server      ServerConfig   `mapstructure:"server"`
 	Database    DatabaseConfig `mapstructure:"database"`
 	JWT         JWTConfig      `mapstructure:"jwt"`
+	Redis       RedisConfig    `mapstructure:"redis"`
+	Logger      Logger         `mapstructure:"logger"`
+}
+
+type Logger struct {
+	Level      string `mapstructure:"level"`
+	FilePath   string `mapstructure:"filepath"`
+	MaxSize    int    `mapstructure:"maxsize"`
+}
+
+type RedisConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     string `mapstructure:"port"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"`
 }
 
 type ServerConfig struct {

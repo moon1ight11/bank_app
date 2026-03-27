@@ -4,6 +4,7 @@ import (
 	"bank_app/internal/api/handlers"
 	"bank_app/internal/api/jwt"
 	"bank_app/internal/api/middleware"
+	"bank_app/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,16 +32,7 @@ func NewRouter(
 	}
 }
 
-func (r *Router) Run() error {
-	err := r.ginEngine.Run(":8080")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *Router) Init(jwtService jwt.TokenService) {
+func (r *Router) Init(jwtService jwt.TokenService, logger logger.Logger) {
 	// MIDDLEWARE для CORS
 	r.ginEngine.Use(middleware.CORS())
 
@@ -51,14 +43,14 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 	adminGroup := r.ginEngine.Group("/api/v1/admin")
 
 	// MIDDLEWARE для общей аутентификации
-	userGroup.Use(middleware.Auth(jwtService))
-	verificatorGroup.Use(middleware.Auth(jwtService))
-	adminGroup.Use(middleware.Auth(jwtService))
+	userGroup.Use(middleware.Auth(jwtService, logger))
+	verificatorGroup.Use(middleware.Auth(jwtService, logger))
+	adminGroup.Use(middleware.Auth(jwtService, logger))
 
 	// MIDDLEWARE для проверки ролей
-	userGroup.Use(middleware.AuthUser())
-	verificatorGroup.Use(middleware.AuthVerificator())
-	adminGroup.Use(middleware.AuthAdmin())
+	userGroup.Use(middleware.AuthUser(logger))
+	verificatorGroup.Use(middleware.AuthVerificator(logger))
+	adminGroup.Use(middleware.AuthAdmin(logger))
 
 	// АУТЕНТИФИКАЦИЯ //
 	// регистрация
@@ -105,4 +97,8 @@ func (r *Router) Init(jwtService jwt.TokenService) {
 	adminGroup.GET("/users", r.usersHandler.GetAllUsers)
 	// обновление роли пользователя
 	adminGroup.PATCH("/users", r.usersHandler.ChangeRole)
+}
+
+func (r *Router) GetEngine() *gin.Engine {
+	return r.ginEngine
 }

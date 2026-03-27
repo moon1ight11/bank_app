@@ -36,5 +36,7 @@ func setDefaults() {
 	viper.SetDefault("database.port", 15432)
 	viper.SetDefault("database.migrationsDir", "./migrations")
 
+	viper.SetDefault("redis.db", 0)
+
 	viper.SetDefault("jwt.expiration", "24h")
 }

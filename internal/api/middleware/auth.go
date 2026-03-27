@@ -3,19 +3,19 @@ package middleware
 import (
 	"bank_app/internal/api/jwt"
 	"bank_app/internal/api/models"
-	"log"
-	"net/http"
+	"bank_app/pkg/logger"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 // аус-мидлвар для всех
-func Auth(jwtService jwt.TokenService) gin.HandlerFunc {
+func Auth(jwtService jwt.TokenService, logger logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer c.Next()
 
 		value, err := c.Cookie("cookie")
 		if err != nil {
-			log.Println("Error in get value from cookie")
+			logger.Error("Error in Auth-middleware", "error:", err)
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			c.Abort()
 			return
@@ -24,14 +24,14 @@ func Auth(jwtService jwt.TokenService) gin.HandlerFunc {
 		claims := jwt.Claims{}
 		token, err := jwtService.ParseToken(value, &claims)
 		if err != nil {
-			log.Println("Error in parse token", err)
+			logger.Error("Error in Auth-middleware", "error:", err)
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			c.Abort()
 			return
 		}
 
 		if !token.Valid {
-			log.Println("Token not valid")
+			logger.Error("Error in Auth-middleware", "error:", "token not valid")
 			c.JSON(http.StatusForbidden, gin.H{"error": "Token not valid"})
 			c.Abort()
 			return
@@ -43,20 +43,20 @@ func Auth(jwtService jwt.TokenService) gin.HandlerFunc {
 }
 
 // role-check для базового и выше
-func AuthUser() gin.HandlerFunc {
+func AuthUser(logger logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer c.Next()
 
 		UserRole, exist := c.Get("UserRole")
 		if !exist {
-			log.Println("Error in get User role")
+			logger.Error("Error in AuthUser-middleware", "error:", "user role not found")
 			c.JSON(http.StatusForbidden, gin.H{"error": "User role not found"})
 			c.Abort()
 			return
 		}
 
-		if UserRole != models.RoleBasic && UserRole != models.RoleVerificator && UserRole != models.RoleAdmin{
-			log.Println("Access violation: you are not 'User'")
+		if UserRole != models.RoleBasic && UserRole != models.RoleVerificator && UserRole != models.RoleAdmin {
+			logger.Error("Error in Auth-middleware", "error:", "access violation")
 			c.JSON(http.StatusForbidden, gin.H{"error": "Access violation"})
 			c.Abort()
 			return
@@ -65,20 +65,20 @@ func AuthUser() gin.HandlerFunc {
 }
 
 // role-check для верификатора и выше
-func AuthVerificator() gin.HandlerFunc {
+func AuthVerificator(logger logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer c.Next()
 
 		UserRole, exist := c.Get("UserRole")
 		if !exist {
-			log.Println("Error in get User role")
+			logger.Error("Error in AuthVerificator-middleware", "error:", "user role not found")
 			c.JSON(http.StatusForbidden, gin.H{"error": "User role not found"})
 			c.Abort()
 			return
 		}
 
 		if UserRole != models.RoleVerificator && UserRole != models.RoleAdmin {
-			log.Println("Access violation: you are not 'Verificator' or 'Admin")
+			logger.Error("Error in AuthVerificator-middleware", "error:", "access violation")
 			c.JSON(http.StatusForbidden, gin.H{"error": "Access violation"})
 			c.Abort()
 			return
@@ -87,20 +87,20 @@ func AuthVerificator() gin.HandlerFunc {
 }
 
 // role-check для админа
-func AuthAdmin() gin.HandlerFunc {
+func AuthAdmin(logger logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer c.Next()
 
 		UserRole, exist := c.Get("UserRole")
 		if !exist {
-			log.Println("Error in get User role")
+			logger.Error("Error in AuthAdmin-middleware", "error:", "user role not found")
 			c.JSON(http.StatusForbidden, gin.H{"error": "User role not found"})
 			c.Abort()
 			return
 		}
 
 		if UserRole != models.RoleAdmin {
-			log.Println("Access violation: you are not 'Admin'")
+			logger.Error("Error in AuthVerificator-middleware", "error:", "access violation")
 			c.JSON(http.StatusForbidden, gin.H{"error": "Access violation"})
 			c.Abort()
 			return
