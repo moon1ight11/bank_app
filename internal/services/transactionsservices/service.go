@@ -4,7 +4,6 @@ import (
 	"bank_app/internal/api/models"
 	"context"
 	"fmt"
-
 	"github.com/google/uuid"
 )
 
@@ -144,8 +143,8 @@ func (t *TransactionsService) TransactionIncoming(ctx context.Context, transacti
 
 	// если все ок - подтверждаем транзакцию
 	if err := tx.Commit(); err != nil {
-        return uuid.Nil, fmt.Errorf("error committing transaction: %w", err)
-    }
+		return uuid.Nil, fmt.Errorf("error committing transaction: %w", err)
+	}
 	return transactionID, nil
 }
 
@@ -158,7 +157,7 @@ func (t *TransactionsService) TransactionOutcoming(ctx context.Context, transact
 	}
 
 	// проверяем, чтобы счет был в той же валюте, что указана в транзакции
-	if models.Currency(account.Currency)  != transaction.Currency {
+	if models.Currency(account.Currency) != transaction.Currency {
 		return uuid.Nil, fmt.Errorf("error in TransactionOutcoming: wrong currency")
 	}
 
@@ -216,8 +215,8 @@ func (t *TransactionsService) TransactionOutcoming(ctx context.Context, transact
 
 	// если все ок - подтверждаем транзакцию
 	if err := tx.Commit(); err != nil {
-        return uuid.Nil, fmt.Errorf("error committing transaction: %w", err)
-    }
+		return uuid.Nil, fmt.Errorf("error committing transaction: %w", err)
+	}
 	return transactionID, nil
 }
 
@@ -293,7 +292,7 @@ func (t *TransactionsService) TransactionTransfer(ctx context.Context, transacti
 
 	// если все ок - подтверждаем транзакцию
 	if err := tx.Commit(); err != nil {
-        return uuid.Nil, fmt.Errorf("error committing transaction: %w", err)
-    }
+		return uuid.Nil, fmt.Errorf("error committing transaction: %w", err)
+	}
 	return transactionID, nil
 }

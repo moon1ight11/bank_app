@@ -4,9 +4,8 @@ import (
 	"bank_app/internal/api/models"
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/google/uuid"
+	"time"
 )
 
 // создание счета

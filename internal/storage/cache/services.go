@@ -23,21 +23,21 @@ func (c *CacheService) Set(ctx context.Context, key string, value interface{}, e
 
 // метод для получения кэша
 func (c *CacheService) Get(ctx context.Context, key string, dest interface{}) error {
-    // получаем данные и кэша
+	// получаем данные и кэша
 	data, err := c.client.Get(ctx, key).Bytes()
 
 	// проверяем ошибки
-    if err != nil {
-        if err == redis.Nil {
-            return fmt.Errorf("cache miss: %w", err)
-        }
-        return fmt.Errorf("failed to get from cache: %w", err)
-    }
-    
-    return json.Unmarshal(data, dest)
+	if err != nil {
+		if err == redis.Nil {
+			return fmt.Errorf("cache miss: %w", err)
+		}
+		return fmt.Errorf("failed to get from cache: %w", err)
+	}
+
+	return json.Unmarshal(data, dest)
 }
 
 // метод для удаления данных из кэша
 func (c *CacheService) Delete(ctx context.Context, key string) error {
-    return c.client.Del(ctx, key).Err()
+	return c.client.Del(ctx, key).Err()
 }

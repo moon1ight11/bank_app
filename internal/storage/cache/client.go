@@ -7,5 +7,5 @@ type CacheService struct {
 }
 
 func NewCacheService(client *redis.Client) *CacheService {
-    return &CacheService{client: client}
+	return &CacheService{client: client}
 }

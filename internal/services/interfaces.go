@@ -3,7 +3,6 @@ package services
 import (
 	"bank_app/internal/api/models"
 	"context"
-
 	"github.com/google/uuid"
 )
 

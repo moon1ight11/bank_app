@@ -4,7 +4,6 @@ import (
 	"bank_app/internal/config"
 	"context"
 	"fmt"
-
 	"github.com/redis/go-redis/v9"
 )
 
@@ -20,11 +19,11 @@ func NewRedisClient(cfg *config.Config) (*RedisClient, error) {
 	if err := client.Ping(ctx).Err(); err != nil {
 		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
 	}
-	
+
 	return &RedisClient{Client: client}, nil
 }
 
 // метод для закрытия соединения с редис
 func (r *RedisClient) Close() error {
-    return r.Client.Close()
+	return r.Client.Close()
 }

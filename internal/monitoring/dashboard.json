@@ -1,0 +1,463 @@
+{
+  "dashboard": {
+    "title": "Bank App Monitoring",
+    "description": "Мониторинг банковского приложения",
+    "tags": ["bank", "go", "prometheus"],
+    "timezone": "browser",
+    "editable": true,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Service Health",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "up{job=\"bank_app\"}",
+            "legendFormat": "Bank App"
+          }
+        ],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "textMode": "value"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            },
+            "mappings": [
+              {"type": "value", "value": "0", "text": "DOWN"},
+              {"type": "value", "value": "1", "text": "UP"}
+            ]
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Goroutines",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+        "targets": [
+          {
+            "expr": "go_goroutines_count{job=\"bank_app\"}",
+            "legendFormat": "Goroutines"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "textMode": "value"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Memory Usage",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+        "targets": [
+          {
+            "expr": "go_memstats_alloc_bytes{job=\"bank_app\"}",
+            "legendFormat": "Memory"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "textMode": "value"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Requests In Flight",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "http_requests_in_flight{job=\"bank_app\"}",
+            "legendFormat": "In Flight"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "textMode": "value"
+        }
+      },
+      {
+        "id": 5,
+        "title": "HTTP Requests Rate",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{job=\"bank_app\"}[5m])) by (method, endpoint)",
+            "legendFormat": "{{method}} {{endpoint}}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "legend": {
+            "calcs": ["mean", "max", "last"],
+            "displayMode": "table",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "custom": {
+              "lineInterpolation": "smooth",
+              "showPoints": "never"
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Request Duration (95th Percentile)",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"bank_app\"}[5m])) by (le, method, endpoint))",
+            "legendFormat": "{{method}} {{endpoint}}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "legend": {
+            "calcs": ["mean", "max", "last"],
+            "displayMode": "table",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "multi"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "custom": {
+              "lineInterpolation": "smooth"
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Operations by Type",
+        "type": "barchart",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 12},
+        "targets": [
+          {
+            "expr": "sum(increase(app_operations_total{job=\"bank_app\"}[1h])) by (operation_type)",
+            "legendFormat": "{{operation_type}}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "orientation": "horizontal",
+          "showValue": "always",
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Errors by Type",
+        "type": "barchart",
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 12},
+        "targets": [
+          {
+            "expr": "sum(increase(app_errors_total{job=\"bank_app\"}[1h])) by (error_type, handler)",
+            "legendFormat": "{{error_type}} - {{handler}}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "orientation": "horizontal",
+          "showValue": "always",
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {
+              "mode": "fixed",
+              "fixedColor": "red"
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Error Rate (%)",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 12},
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{job=\"bank_app\", status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"bank_app\"}[5m])) * 100",
+            "legendFormat": "Error Rate",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "HTTP Status Codes Distribution",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 20},
+        "targets": [
+          {
+            "expr": "sum(increase(http_requests_total{job=\"bank_app\"}[1h])) by (status)",
+            "legendFormat": "{{status}}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "displayLabels": ["name", "percent"],
+          "legend": {
+            "displayMode": "list",
+            "placement": "right"
+          },
+          "pieType": "pie"
+        }
+      },
+      {
+        "id": 11,
+        "title": "Top Endpoints by Request Count",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 20},
+        "targets": [
+          {
+            "expr": "topk(10, sum(increase(http_requests_total{job=\"bank_app\"}[1h])) by (endpoint, method))",
+            "legendFormat": "{{method}} {{endpoint}}",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+            {
+              "desc": true,
+              "displayName": "Value"
+            }
+          ]
+        }
+      },
+      {
+        "id": 12,
+        "title": "Slowest Endpoints (95th Percentile)",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 20},
+        "targets": [
+          {
+            "expr": "topk(10, histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"bank_app\"}[1h])) by (le, method, endpoint)))",
+            "legendFormat": "{{method}} {{endpoint}}",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+            {
+              "desc": true,
+              "displayName": "Value"
+            }
+          ]
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 13,
+        "title": "Memory Usage Over Time",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
+        "targets": [
+          {
+            "expr": "go_memstats_alloc_bytes{job=\"bank_app\"}",
+            "legendFormat": "Allocated",
+            "refId": "A"
+          },
+          {
+            "expr": "go_memstats_heap_inuse_bytes{job=\"bank_app\"}",
+            "legendFormat": "Heap In Use",
+            "refId": "B"
+          },
+          {
+            "expr": "go_memstats_stack_inuse_bytes{job=\"bank_app\"}",
+            "legendFormat": "Stack In Use",
+            "refId": "C"
+          }
+        ],
+        "options": {
+          "legend": {
+            "calcs": ["mean", "max", "last"],
+            "displayMode": "table",
+            "placement": "bottom"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes"
+          }
+        }
+      },
+      {
+        "id": 14,
+        "title": "GC Duration",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
+        "targets": [
+          {
+            "expr": "rate(go_gc_duration_seconds_sum{job=\"bank_app\"}[5m]) / rate(go_gc_duration_seconds_count{job=\"bank_app\"}[5m])",
+            "legendFormat": "Average GC Duration",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(go_gc_duration_seconds_bucket{job=\"bank_app\"}[5m]))",
+            "legendFormat": "95th Percentile",
+            "refId": "B"
+          }
+        ],
+        "options": {
+          "legend": {
+            "calcs": ["mean", "max", "last"],
+            "displayMode": "table",
+            "placement": "bottom"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "job",
+          "type": "query",
+          "query": "label_values(up, job)",
+          "refresh": 2,
+          "current": {
+            "selected": true,
+            "text": "bank_app",
+            "value": "bank_app"
+          },
+          "hide": 0,
+          "label": "Job",
+          "includeAll": false
+        },
+        {
+          "name": "instance",
+          "type": "query",
+          "query": "label_values(up{job=\"$job\"}, instance)",
+          "refresh": 2,
+          "current": {
+            "selected": true,
+            "text": "bank_app",
+            "value": "bank_app"
+          },
+          "hide": 2,
+          "label": "Instance",
+          "includeAll": false
+        }
+      ]
+    },
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"],
+      "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+    }
+  },
+  "overwrite": true,
+  "inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "value": "Prometheus"
+    }
+  ]
+}

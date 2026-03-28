@@ -2,6 +2,7 @@ package authentificationhandlers
 
 import (
 	"bank_app/internal/api/jwt"
+	"bank_app/internal/monitoring"
 	"bank_app/internal/services"
 	"bank_app/pkg/logger"
 )
@@ -9,13 +10,20 @@ import (
 type AuthHandler struct {
 	userService services.UsersServiceInterface
 	jwtService  jwt.TokenService
-	logger logger.Logger
+	logger      logger.Logger
+	metrics     *monitoring.Metrics
 }
 
-func NewAuthHandler(userService services.UsersServiceInterface, jwtService jwt.TokenService, logger logger.Logger) *AuthHandler {
+func NewAuthHandler(
+	userService services.UsersServiceInterface,
+	jwtService jwt.TokenService,
+	logger logger.Logger,
+	metrics *monitoring.Metrics,
+) *AuthHandler {
 	return &AuthHandler{
 		userService: userService,
 		jwtService:  jwtService,
-		logger: logger,
+		logger:      logger,
+		metrics:     metrics,
 	}
 }

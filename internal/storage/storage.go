@@ -4,7 +4,6 @@ import (
 	"bank_app/internal/config"
 	"database/sql"
 	"fmt"
-
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
 )

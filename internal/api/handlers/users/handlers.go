@@ -14,9 +14,13 @@ import (
 
 // получение данных пользователя
 func (u *UsersHandler) GetUser(c *gin.Context) {
+	// записываем операцию в метрики
+	u.metrics.RecordOperation("get_user")
+
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
+		u.metrics.RecordError(err.Error(), "GetUser")
 		u.logger.Error("Error in GetUser", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -29,6 +33,7 @@ func (u *UsersHandler) GetUser(c *gin.Context) {
 	// получаем пользователя
 	user, err := u.userService.UserGet(ctx, userID)
 	if err != nil {
+		u.metrics.RecordError(err.Error(), "GetUser")
 		u.logger.Error("Error in GetUser", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -39,9 +44,13 @@ func (u *UsersHandler) GetUser(c *gin.Context) {
 
 // изменение данных пользователя
 func (u *UsersHandler) UpdateUser(c *gin.Context) {
+	// записываем операцию в метрики
+	u.metrics.RecordOperation("update_user")
+
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
+		u.metrics.RecordError(err.Error(), "UpdateUser")
 		u.logger.Error("Error in UpdateUser", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -58,6 +67,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 
 	// получаем обновленного пользователя с фронта
 	if err := c.ShouldBindJSON(&updatedUser); err != nil {
+		u.metrics.RecordError(err.Error(), "UpdateUser")
 		u.logger.Error("Error in UpdateUser", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
@@ -87,6 +97,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 		pattern := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
 		matched, err := regexp.MatchString(pattern, *updatedUser.Email)
 		if err != nil {
+			u.metrics.RecordError(err.Error(), "UpdateUser")
 			u.logger.Error("Error in UpdateUser", "error:", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -130,6 +141,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 		updatedUser.ID,
 	)
 	if err != nil {
+		u.metrics.RecordError(err.Error(), "UpdateUser")
 		u.logger.Error("Error in UpdateUser", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -138,19 +150,26 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// получение структуры обновленного пользователя
 	foundUser, err := u.userService.UserGet(ctx, updatedUser.ID)
 	if err != nil {
+		u.metrics.RecordError(err.Error(), "UpdateUser")
 		u.logger.Error("Error in UpdateUser", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	u.logger.Info("User updated successfully", "userId", userID)
 
 	c.JSON(http.StatusOK, gin.H{"updated_user": foundUser})
 }
 
 // удаление пользователя
 func (u *UsersHandler) DeleteUser(c *gin.Context) {
+	// записываем операцию в метрики
+	u.metrics.RecordOperation("delete_user")
+
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
+		u.metrics.RecordError(err.Error(), "DeleteUser")
 		u.logger.Error("Error in DeleteUser", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -163,6 +182,7 @@ func (u *UsersHandler) DeleteUser(c *gin.Context) {
 	// удаляем пользователя
 	err = u.userService.UserDelete(ctx, userID)
 	if err != nil {
+		u.metrics.RecordError(err.Error(), "DeleteUser")
 		u.logger.Error("Error in DeleteUser", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -171,14 +191,20 @@ func (u *UsersHandler) DeleteUser(c *gin.Context) {
 	// обнуляем куки
 	c.SetCookie("cookie", "1", -1, "/", "", false, false)
 
+	u.logger.Info("User deleted successfully", "userId", userID)
+
 	c.JSON(http.StatusOK, gin.H{"message": "successful delete"})
 }
 
 // создание админа или верификатора
 func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
+	// записываем операцию в метрики
+	u.metrics.RecordOperation("create_admin/verif")
+
 	// получаем с фронта пользователя
 	var user models.UserRegister
 	if err := c.ShouldBindJSON(&user); err != nil {
+		u.metrics.RecordError(err.Error(), "CreateAdminOrVerificator")
 		u.logger.Error("Error in CreateAdminOrVerificator", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -192,6 +218,7 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 		strings.TrimSpace(user.PhoneNumber) == "" ||
 		user.Role == "" {
 
+		u.metrics.RecordError("Error in CreateAdminOrVerificator: one or more required fields are empty", "CreateAdminOrVerificator")
 		u.logger.Error("Error in CreateAdminOrVerificator", "error:", "one or more required fields are empty")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "All fields (Name, Surname, Email, Password, PhoneNumber, Role) are required"})
 		return
@@ -203,16 +230,22 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 
 	userId, err := u.userService.AdminAdd(ctx, user)
 	if err != nil {
+		u.metrics.RecordError(err.Error(), "CreateAdminOrVerificator")
 		u.logger.Error("Error in CreateAdminOrVerificator", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	u.logger.Info("User created successfully", "userId", userId, "role", user.Role)
 
 	c.JSON(http.StatusCreated, gin.H{"admin_or_verificator_id": userId})
 }
 
 // получение списка юзеров с фильтром на роль
 func (u *UsersHandler) GetAllUsers(c *gin.Context) {
+	// записываем операцию в метрики
+	u.metrics.RecordOperation("get_all_users")
+
 	// получаем роль из параметров
 	param := c.Query("role")
 	role := models.Role(param)
@@ -223,6 +256,7 @@ func (u *UsersHandler) GetAllUsers(c *gin.Context) {
 
 	users, err := u.userService.UsersByRoleGet(ctx, role)
 	if err != nil {
+		u.metrics.RecordError(err.Error(), "GetAllUsers")
 		u.logger.Error("Error in GetAllUsers", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -233,9 +267,13 @@ func (u *UsersHandler) GetAllUsers(c *gin.Context) {
 
 // изменение роли пользователя
 func (u *UsersHandler) ChangeRole(c *gin.Context) {
+	// записываем операцию в метрики
+	u.metrics.RecordOperation("change_role")
+
 	// получаем с фронта новую роль
 	var role models.Role
 	if err := c.ShouldBindJSON(&role); err != nil {
+		u.metrics.RecordError(err.Error(), "ChangeRole")
 		u.logger.Error("Error in ChangeRole", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -245,6 +283,7 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	idStr := c.Param("user_id")
 	userID, err := uuid.Parse(idStr)
 	if err != nil {
+		u.metrics.RecordError(err.Error(), "ChangeRole")
 		u.logger.Error("Error in ChangeRole", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
 		return
@@ -257,6 +296,7 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	// меняем ему роль
 	err = u.userService.RoleChange(ctx, userID, role)
 	if err != nil {
+		u.metrics.RecordError(err.Error(), "ChangeRole")
 		u.logger.Error("Error in ChangeRole", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -265,10 +305,17 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	// получаем обновленного пользователя
 	user, err := u.userService.UserGet(ctx, userID)
 	if err != nil {
+		u.metrics.RecordError(err.Error(), "ChangeRole")
 		u.logger.Error("Error in ChangeRole", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	u.logger.Info("User role changed successfully",
+		"userId", user.Id,
+		"new_role", user.Role,
+		"old_role", role,
+	)
 
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }

@@ -22,7 +22,7 @@ type UserRegister struct {
 
 // авторизация юзера
 type UserAutorization struct {
-	Email string `json:"email" binding:"required,email"`
+	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password"`
 }
 

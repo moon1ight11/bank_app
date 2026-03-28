@@ -4,8 +4,8 @@ import (
 	"bank_app/internal/api/handlers"
 	"bank_app/internal/api/jwt"
 	"bank_app/internal/api/middleware"
+	"bank_app/internal/monitoring"
 	"bank_app/pkg/logger"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,9 +32,15 @@ func NewRouter(
 	}
 }
 
-func (r *Router) Init(jwtService jwt.TokenService, logger logger.Logger) {
+func (r *Router) Init(jwtService jwt.TokenService, logger logger.Logger, metrics *monitoring.Metrics) {
 	// MIDDLEWARE для CORS
 	r.ginEngine.Use(middleware.CORS())
+
+	// регистрация хэндлера для сбора метрик
+	metrics.RegisterMetricsHandler(r.ginEngine, "/metrics")
+
+	// MIDDLEWARE для сбора метрик
+	r.ginEngine.Use(middleware.MetricsMiddleware(metrics))
 
 	// группировка роутов
 	authGroup := r.ginEngine.Group("/api/v1/auth")

@@ -9,3 +9,54 @@ services:
       - POSTGRES_DB=bank
     volumes:
       - "./temp_files/postgresql_data:/var/lib/postgresql/data"
+    networks:
+      - monitoring
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  redis_data:

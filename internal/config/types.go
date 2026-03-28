@@ -12,9 +12,9 @@ type Config struct {
 }
 
 type Logger struct {
-	Level      string `mapstructure:"level"`
-	FilePath   string `mapstructure:"filepath"`
-	MaxSize    int    `mapstructure:"maxsize"`
+	Level    string `mapstructure:"level"`
+	FilePath string `mapstructure:"filepath"`
+	MaxSize  int    `mapstructure:"maxsize"`
 }
 
 type RedisConfig struct {

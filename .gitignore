@@ -1,3 +1,5 @@
-temp_files/
-
 config.yaml
+
+temp_files/
+logs/
+*.log

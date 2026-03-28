@@ -12,10 +12,14 @@ type AccountsService struct {
 	cacheService     cache.CacheInterface
 }
 
-func NewAccountsService(accountsRepo *accounts.Repo, transactionsRepo *transactions.Repo, cacheService cache.CacheInterface) *AccountsService {
+func NewAccountsService(
+	accountsRepo *accounts.Repo,
+	transactionsRepo *transactions.Repo,
+	cacheService cache.CacheInterface,
+) *AccountsService {
 	return &AccountsService{
 		accountsRepo:     accountsRepo,
 		transactionsRepo: transactionsRepo,
-		cacheService: cacheService,
+		cacheService:     cacheService,
 	}
 }

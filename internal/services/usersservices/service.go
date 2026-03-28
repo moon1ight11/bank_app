@@ -4,10 +4,9 @@ import (
 	"bank_app/internal/api/models"
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 // проверка уникальности данных пользователя
@@ -68,7 +67,7 @@ func (u *UsersService) UserAdd(ctx context.Context, user models.UserRegister) (u
 	}
 
 	if check {
-		return uuid.Nil, fmt.Errorf("error i UserAdd: userCheck is failed")
+		return uuid.Nil, fmt.Errorf("error in UserAdd: userCheck is failed")
 	}
 
 	user.Role = models.RoleBasic
@@ -350,7 +349,7 @@ func (u *UsersService) RoleChange(ctx context.Context, userID uuid.UUID, role mo
 	}
 
 	cacheKey := fmt.Sprintf("user:%s", userID.String())
-	
+
 	// удаление из кэша
 	if u.cacheService != nil {
 		if err := u.cacheService.Delete(ctx, cacheKey); err != nil {

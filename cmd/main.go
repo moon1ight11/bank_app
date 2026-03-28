@@ -8,6 +8,7 @@ import (
 	usershandlers "bank_app/internal/api/handlers/users"
 	"bank_app/internal/api/jwt"
 	"bank_app/internal/config"
+	"bank_app/internal/monitoring"
 	"bank_app/internal/services/accountsservices"
 	transactionsservice "bank_app/internal/services/transactionsservices"
 	usersservice "bank_app/internal/services/usersservices"
@@ -43,14 +44,13 @@ func main() {
 	}
 
 	// инициализация логгера
-	logger, err := logger.NewLogger(config.Logger{
-		Level:    "debug",
-		FilePath: "logs/app.log",
-		MaxSize:  10,
-	})
+	logger, err := logger.NewLogger(cfg.Logger)
 	if err != nil {
 		panic(err)
 	}
+
+	// инициализация метрик
+	metrics := monitoring.NewMetrics()
 
 	// соединение с БД
 	db, err := storage.NewStorage(cfg)
@@ -91,20 +91,20 @@ func main() {
 	accountsService := accountsservices.NewAccountsService(accountsRepo, transactionsRepo, cacheService)
 	transactionsService := transactionsservice.NewTransactionsService(transactionsRepo, accountsRepo)
 
-	authHandler := authentificationhandlers.NewAuthHandler(usersService, jwtService, logger)
-	usersHandler := usershandlers.NewUsersHandler(usersService, jwtService, logger)
-	accountsHandler := accountshandlers.NewAccountsHandler(accountsService, jwtService, logger)
-	transactionsHandler := transactionshandlers.NewTransactionsHandler(transactionsService, jwtService, logger)
+	authHandler := authentificationhandlers.NewAuthHandler(usersService, jwtService, logger, metrics)
+	usersHandler := usershandlers.NewUsersHandler(usersService, jwtService, logger, metrics)
+	accountsHandler := accountshandlers.NewAccountsHandler(accountsService, jwtService, logger, metrics)
+	transactionsHandler := transactionshandlers.NewTransactionsHandler(transactionsService, jwtService, logger, metrics)
 
 	// инициализация роутера
 	router := api.NewRouter(authHandler, usersHandler, accountsHandler, transactionsHandler)
 
 	// инициализация роутов
-	router.Init(jwtService, logger)
+	router.Init(jwtService, logger, metrics)
 
 	// Создаем HTTP сервер
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    "0.0.0.0:8080",
 		Handler: router.GetEngine(),
 	}
 
