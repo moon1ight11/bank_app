@@ -3,13 +3,14 @@ package usershandlers
 import (
 	"bank_app/internal/api/helpers"
 	"bank_app/internal/api/models"
+	"bank_app/internal/monitoring"
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // получение данных пользователя
@@ -20,7 +21,7 @@ func (u *UsersHandler) GetUser(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		u.metrics.RecordError(err.Error(), "GetUser")
+		u.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetUser")
 		u.logger.Error("Error in GetUser", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -33,7 +34,7 @@ func (u *UsersHandler) GetUser(c *gin.Context) {
 	// получаем пользователя
 	user, err := u.userService.UserGet(ctx, userID)
 	if err != nil {
-		u.metrics.RecordError(err.Error(), "GetUser")
+		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetUser")
 		u.logger.Error("Error in GetUser", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -50,7 +51,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		u.metrics.RecordError(err.Error(), "UpdateUser")
+		u.metrics.RecordError(string(monitoring.ErrExtractUserId), "UpdateUser")
 		u.logger.Error("Error in UpdateUser", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -67,7 +68,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 
 	// получаем обновленного пользователя с фронта
 	if err := c.ShouldBindJSON(&updatedUser); err != nil {
-		u.metrics.RecordError(err.Error(), "UpdateUser")
+		u.metrics.RecordError(string(monitoring.ErrBadRequest), "UpdateUser")
 		u.logger.Error("Error in UpdateUser", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
@@ -76,6 +77,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// если обновляется имя - чтобы было не пустое
 	if updatedUser.Name != nil {
 		if strings.TrimSpace(*updatedUser.Name) == "" {
+			u.metrics.RecordError(string(monitoring.ErrInvalidInput), "UpdateUser")
 			u.logger.Error("Error in UpdateUser", "error:", "new name is empty")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "New name is empty"})
 			return
@@ -85,6 +87,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// если обновляется пароль - чтобы не был пустым
 	if updatedUser.Password != nil {
 		if strings.TrimSpace(*updatedUser.Password) == "" {
+			u.metrics.RecordError(string(monitoring.ErrInvalidInput), "UpdateUser")
 			u.logger.Error("Error in UpdateUser", "error:", "new pass is empty")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "New pass is empty"})
 			return
@@ -93,20 +96,10 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 
 	// если обновляется почта
 	if updatedUser.Email != nil {
-		// проверяем, похожа ли новая почта на почту
-		pattern := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
-		matched, err := regexp.MatchString(pattern, *updatedUser.Email)
-		if err != nil {
-			u.metrics.RecordError(err.Error(), "UpdateUser")
-			u.logger.Error("Error in UpdateUser", "error:", err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		// если нет - отклоняем
-		if !matched {
-			u.logger.Error("Error in UpdateUser", "error:", "new email not looks like email")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "New email not looks like email"})
+		if strings.TrimSpace(*updatedUser.Email) == "" {
+			u.metrics.RecordError(string(monitoring.ErrInvalidInput), "UpdateUser")
+			u.logger.Error("Error in UpdateUser", "error:", "new email is empty")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "New email is empty"})
 			return
 		}
 	}
@@ -114,6 +107,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// если обновляется телефон
 	if updatedUser.PhoneNumber != nil {
 		if strings.TrimSpace(*updatedUser.PhoneNumber) == "" {
+			u.metrics.RecordError(string(monitoring.ErrInvalidInput), "UpdateUser")
 			u.logger.Error("Error in UpdateUser", "error:", "new phone number is empty")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "New phone number is empty"})
 			return
@@ -123,6 +117,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// если обновляется временная зона
 	if updatedUser.Timezone != nil {
 		if strings.TrimSpace(*updatedUser.Timezone) == "" {
+			u.metrics.RecordError(string(monitoring.ErrInvalidInput), "UpdateUser")
 			u.logger.Error("Error in UpdateUser", "error:", "new timezone is empty")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "New timezone is empty"})
 			return
@@ -141,7 +136,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 		updatedUser.ID,
 	)
 	if err != nil {
-		u.metrics.RecordError(err.Error(), "UpdateUser")
+		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "UpdateUser")
 		u.logger.Error("Error in UpdateUser", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -150,7 +145,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	// получение структуры обновленного пользователя
 	foundUser, err := u.userService.UserGet(ctx, updatedUser.ID)
 	if err != nil {
-		u.metrics.RecordError(err.Error(), "UpdateUser")
+		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "UpdateUser")
 		u.logger.Error("Error in UpdateUser", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -169,7 +164,7 @@ func (u *UsersHandler) DeleteUser(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		u.metrics.RecordError(err.Error(), "DeleteUser")
+		u.metrics.RecordError(string(monitoring.ErrExtractUserId), "DeleteUser")
 		u.logger.Error("Error in DeleteUser", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -182,7 +177,7 @@ func (u *UsersHandler) DeleteUser(c *gin.Context) {
 	// удаляем пользователя
 	err = u.userService.UserDelete(ctx, userID)
 	if err != nil {
-		u.metrics.RecordError(err.Error(), "DeleteUser")
+		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "DeleteUser")
 		u.logger.Error("Error in DeleteUser", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -204,7 +199,7 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 	// получаем с фронта пользователя
 	var user models.UserRegister
 	if err := c.ShouldBindJSON(&user); err != nil {
-		u.metrics.RecordError(err.Error(), "CreateAdminOrVerificator")
+		u.metrics.RecordError(string(monitoring.ErrBadRequest), "CreateAdminOrVerificator")
 		u.logger.Error("Error in CreateAdminOrVerificator", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -218,7 +213,7 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 		strings.TrimSpace(user.PhoneNumber) == "" ||
 		user.Role == "" {
 
-		u.metrics.RecordError("Error in CreateAdminOrVerificator: one or more required fields are empty", "CreateAdminOrVerificator")
+		u.metrics.RecordError(string(monitoring.ErrInvalidInput), "CreateAdminOrVerificator")
 		u.logger.Error("Error in CreateAdminOrVerificator", "error:", "one or more required fields are empty")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "All fields (Name, Surname, Email, Password, PhoneNumber, Role) are required"})
 		return
@@ -230,7 +225,7 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 
 	userId, err := u.userService.AdminAdd(ctx, user)
 	if err != nil {
-		u.metrics.RecordError(err.Error(), "CreateAdminOrVerificator")
+		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "CreateAdminOrVerificator")
 		u.logger.Error("Error in CreateAdminOrVerificator", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -256,7 +251,7 @@ func (u *UsersHandler) GetAllUsers(c *gin.Context) {
 
 	users, err := u.userService.UsersByRoleGet(ctx, role)
 	if err != nil {
-		u.metrics.RecordError(err.Error(), "GetAllUsers")
+		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetAllUsers")
 		u.logger.Error("Error in GetAllUsers", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -271,9 +266,9 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	u.metrics.RecordOperation("change_role")
 
 	// получаем с фронта новую роль
-	var role models.Role
+	var role models.ChangeRoleRequest
 	if err := c.ShouldBindJSON(&role); err != nil {
-		u.metrics.RecordError(err.Error(), "ChangeRole")
+		u.metrics.RecordError(string(monitoring.ErrBadRequest), "ChangeRole")
 		u.logger.Error("Error in ChangeRole", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -283,7 +278,7 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	idStr := c.Param("user_id")
 	userID, err := uuid.Parse(idStr)
 	if err != nil {
-		u.metrics.RecordError(err.Error(), "ChangeRole")
+		u.metrics.RecordError(string(monitoring.ErrParseUUID), "ChangeRole")
 		u.logger.Error("Error in ChangeRole", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
 		return
@@ -294,9 +289,9 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	defer cancel()
 
 	// меняем ему роль
-	err = u.userService.RoleChange(ctx, userID, role)
+	err = u.userService.RoleChange(ctx, userID, role.Role)
 	if err != nil {
-		u.metrics.RecordError(err.Error(), "ChangeRole")
+		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "ChangeRole")
 		u.logger.Error("Error in ChangeRole", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -305,7 +300,7 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	// получаем обновленного пользователя
 	user, err := u.userService.UserGet(ctx, userID)
 	if err != nil {
-		u.metrics.RecordError(err.Error(), "ChangeRole")
+		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "ChangeRole")
 		u.logger.Error("Error in ChangeRole", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

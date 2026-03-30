@@ -1,463 +1,953 @@
 {
-  "dashboard": {
-    "title": "Bank App Monitoring",
-    "description": "Мониторинг банковского приложения",
-    "tags": ["bank", "go", "prometheus"],
-    "timezone": "browser",
-    "editable": true,
-    "refresh": "30s",
-    "panels": [
+  "annotations": {
+    "list": [
       {
-        "id": 1,
-        "title": "Service Health",
-        "type": "stat",
-        "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
-        "targets": [
-          {
-            "expr": "up{job=\"bank_app\"}",
-            "legendFormat": "Bank App"
-          }
-        ],
-        "options": {
-          "colorMode": "background",
-          "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
-          "reduceOptions": {
-            "values": false,
-            "calcs": ["lastNotNull"]
-          },
-          "textMode": "value"
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
         },
-        "fieldConfig": {
-          "defaults": {
-            "thresholds": {
-              "steps": [
-                {"color": "red", "value": null},
-                {"color": "green", "value": 1}
-              ]
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "panels": [],
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total[5m])",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests per second",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 200
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "http_requests_in_flight",
+          "refId": "A"
+        }
+      ],
+      "title": "In-flight requests",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "go_goroutines_count",
+          "refId": "A"
+        }
+      ],
+      "title": "Goroutines count",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+          "refId": "A"
+        }
+      ],
+      "title": "P95 request duration",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "id": 6,
+      "panels": [],
+      "title": "HTTP Requests",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "mappings": [
-              {"type": "value", "value": "0", "text": "DOWN"},
-              {"type": "value", "value": "1", "text": "UP"}
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(http_requests_total[5m])",
+          "legendFormat": "{{method}} {{endpoint}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests rate by endpoint",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "2xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "4xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "5xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
             ]
           }
-        }
+        ]
       },
-      {
-        "id": 2,
-        "title": "Goroutines",
-        "type": "stat",
-        "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
-        "targets": [
-          {
-            "expr": "go_goroutines_count{job=\"bank_app\"}",
-            "legendFormat": "Goroutines"
-          }
-        ],
-        "options": {
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "center",
-          "orientation": "auto",
-          "reduceOptions": {
-            "values": false,
-            "calcs": ["lastNotNull"]
-          },
-          "textMode": "value"
-        }
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
       },
-      {
-        "id": 3,
-        "title": "Memory Usage",
-        "type": "stat",
-        "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
-        "targets": [
-          {
-            "expr": "go_memstats_alloc_bytes{job=\"bank_app\"}",
-            "legendFormat": "Memory"
-          }
-        ],
-        "options": {
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "center",
-          "orientation": "auto",
-          "reduceOptions": {
-            "values": false,
-            "calcs": ["lastNotNull"]
-          },
-          "textMode": "value"
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "bytes"
-          }
-        }
-      },
-      {
-        "id": 4,
-        "title": "Requests In Flight",
-        "type": "stat",
-        "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
-        "targets": [
-          {
-            "expr": "http_requests_in_flight{job=\"bank_app\"}",
-            "legendFormat": "In Flight"
-          }
-        ],
-        "options": {
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "center",
-          "orientation": "auto",
-          "reduceOptions": {
-            "values": false,
-            "calcs": ["lastNotNull"]
-          },
-          "textMode": "value"
-        }
-      },
-      {
-        "id": 5,
-        "title": "HTTP Requests Rate",
-        "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
-        "targets": [
-          {
-            "expr": "sum(rate(http_requests_total{job=\"bank_app\"}[5m])) by (method, endpoint)",
-            "legendFormat": "{{method}} {{endpoint}}",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "legend": {
-            "calcs": ["mean", "max", "last"],
-            "displayMode": "table",
-            "placement": "bottom"
-          },
-          "tooltip": {
-            "mode": "multi"
-          }
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
         },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "reqps",
-            "custom": {
-              "lineInterpolation": "smooth",
-              "showPoints": "never"
-            }
-          }
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         }
       },
-      {
-        "id": 6,
-        "title": "Request Duration (95th Percentile)",
-        "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"bank_app\"}[5m])) by (le, method, endpoint))",
-            "legendFormat": "{{method}} {{endpoint}}",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "legend": {
-            "calcs": ["mean", "max", "last"],
-            "displayMode": "table",
-            "placement": "bottom"
-          },
-          "tooltip": {
-            "mode": "multi"
-          }
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "s",
-            "custom": {
-              "lineInterpolation": "smooth"
-            }
-          }
-        }
-      },
-      {
-        "id": 7,
-        "title": "Operations by Type",
-        "type": "barchart",
-        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 12},
-        "targets": [
-          {
-            "expr": "sum(increase(app_operations_total{job=\"bank_app\"}[1h])) by (operation_type)",
-            "legendFormat": "{{operation_type}}",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "orientation": "horizontal",
-          "showValue": "always",
-          "legend": {
-            "displayMode": "list",
-            "placement": "bottom"
-          }
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short"
-          }
-        }
-      },
-      {
-        "id": 8,
-        "title": "Errors by Type",
-        "type": "barchart",
-        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 12},
-        "targets": [
-          {
-            "expr": "sum(increase(app_errors_total{job=\"bank_app\"}[1h])) by (error_type, handler)",
-            "legendFormat": "{{error_type}} - {{handler}}",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "orientation": "horizontal",
-          "showValue": "always",
-          "legend": {
-            "displayMode": "list",
-            "placement": "bottom"
-          }
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "color": {
-              "mode": "fixed",
-              "fixedColor": "red"
-            }
-          }
-        }
-      },
-      {
-        "id": 9,
-        "title": "Error Rate (%)",
-        "type": "timeseries",
-        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 12},
-        "targets": [
-          {
-            "expr": "sum(rate(http_requests_total{job=\"bank_app\", status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"bank_app\"}[5m])) * 100",
-            "legendFormat": "Error Rate",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "legend": {
-            "displayMode": "list",
-            "placement": "bottom"
-          }
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percent",
-            "min": 0,
-            "max": 100,
-            "thresholds": {
-              "steps": [
-                {"color": "green", "value": null},
-                {"color": "yellow", "value": 1},
-                {"color": "red", "value": 5}
-              ]
-            }
-          }
-        }
-      },
-      {
-        "id": 10,
-        "title": "HTTP Status Codes Distribution",
-        "type": "piechart",
-        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 20},
-        "targets": [
-          {
-            "expr": "sum(increase(http_requests_total{job=\"bank_app\"}[1h])) by (status)",
-            "legendFormat": "{{status}}",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "displayLabels": ["name", "percent"],
-          "legend": {
-            "displayMode": "list",
-            "placement": "right"
-          },
-          "pieType": "pie"
-        }
-      },
-      {
-        "id": 11,
-        "title": "Top Endpoints by Request Count",
-        "type": "table",
-        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 20},
-        "targets": [
-          {
-            "expr": "topk(10, sum(increase(http_requests_total{job=\"bank_app\"}[1h])) by (endpoint, method))",
-            "legendFormat": "{{method}} {{endpoint}}",
-            "format": "table",
-            "instant": true,
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "showHeader": true,
-          "sortBy": [
-            {
-              "desc": true,
-              "displayName": "Value"
-            }
-          ]
-        }
-      },
-      {
-        "id": 12,
-        "title": "Slowest Endpoints (95th Percentile)",
-        "type": "table",
-        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 20},
-        "targets": [
-          {
-            "expr": "topk(10, histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"bank_app\"}[1h])) by (le, method, endpoint)))",
-            "legendFormat": "{{method}} {{endpoint}}",
-            "format": "table",
-            "instant": true,
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "showHeader": true,
-          "sortBy": [
-            {
-              "desc": true,
-              "displayName": "Value"
-            }
-          ]
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "s"
-          }
-        }
-      },
-      {
-        "id": 13,
-        "title": "Memory Usage Over Time",
-        "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
-        "targets": [
-          {
-            "expr": "go_memstats_alloc_bytes{job=\"bank_app\"}",
-            "legendFormat": "Allocated",
-            "refId": "A"
-          },
-          {
-            "expr": "go_memstats_heap_inuse_bytes{job=\"bank_app\"}",
-            "legendFormat": "Heap In Use",
-            "refId": "B"
-          },
-          {
-            "expr": "go_memstats_stack_inuse_bytes{job=\"bank_app\"}",
-            "legendFormat": "Stack In Use",
-            "refId": "C"
-          }
-        ],
-        "options": {
-          "legend": {
-            "calcs": ["mean", "max", "last"],
-            "displayMode": "table",
-            "placement": "bottom"
-          }
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "bytes"
-          }
-        }
-      },
-      {
-        "id": 14,
-        "title": "GC Duration",
-        "type": "timeseries",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
-        "targets": [
-          {
-            "expr": "rate(go_gc_duration_seconds_sum{job=\"bank_app\"}[5m]) / rate(go_gc_duration_seconds_count{job=\"bank_app\"}[5m])",
-            "legendFormat": "Average GC Duration",
-            "refId": "A"
-          },
-          {
-            "expr": "histogram_quantile(0.95, rate(go_gc_duration_seconds_bucket{job=\"bank_app\"}[5m]))",
-            "legendFormat": "95th Percentile",
-            "refId": "B"
-          }
-        ],
-        "options": {
-          "legend": {
-            "calcs": ["mean", "max", "last"],
-            "displayMode": "table",
-            "placement": "bottom"
-          }
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "s"
-          }
-        }
-      }
-    ],
-    "templating": {
-      "list": [
+      "targets": [
         {
-          "name": "job",
-          "type": "query",
-          "query": "label_values(up, job)",
-          "refresh": 2,
-          "current": {
-            "selected": true,
-            "text": "bank_app",
-            "value": "bank_app"
-          },
-          "hide": 0,
-          "label": "Job",
-          "includeAll": false
-        },
-        {
-          "name": "instance",
-          "type": "query",
-          "query": "label_values(up{job=\"$job\"}, instance)",
-          "refresh": 2,
-          "current": {
-            "selected": true,
-            "text": "bank_app",
-            "value": "bank_app"
-          },
-          "hide": 2,
-          "label": "Instance",
-          "includeAll": false
+          "expr": "sum(rate(http_requests_total[5m])) by (status)",
+          "legendFormat": "{{status}}",
+          "refId": "A"
         }
-      ]
+      ],
+      "title": "Request status distribution",
+      "type": "piechart"
     },
-    "time": {
-      "from": "now-1h",
-      "to": "now"
-    },
-    "timepicker": {
-      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"],
-      "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
-    }
-  },
-  "overwrite": true,
-  "inputs": [
     {
-      "name": "DS_PROMETHEUS",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "value": "Prometheus"
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.5, rate(http_request_duration_seconds_bucket[5m]))",
+          "legendFormat": "P50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+          "legendFormat": "P95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))",
+          "legendFormat": "P99",
+          "refId": "C"
+        }
+      ],
+      "title": "Request duration percentiles",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 10,
+      "panels": [],
+      "title": "Application Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(app_operations_total[5m])",
+          "legendFormat": "{{operation_type}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Operation rate by type",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "err"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(app_errors_total[5m])",
+          "legendFormat": "{{error_type}} - {{handler}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Error rate by type",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "id": 13,
+      "panels": [],
+      "title": "System Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "go_goroutines_count",
+          "legendFormat": "Goroutines",
+          "refId": "A"
+        }
+      ],
+      "title": "Goroutines count",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 200
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 15,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "go_goroutines_count",
+          "refId": "A"
+        }
+      ],
+      "title": "Current Goroutines",
+      "type": "gauge"
     }
-  ]
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [
+    "banking",
+    "prometheus",
+    "go",
+    "gin"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Bank Application Monitoring",
+  "uid": "bank-app-monitoring",
+  "version": 1
 }

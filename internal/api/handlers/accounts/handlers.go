@@ -3,11 +3,13 @@ package accountshandlers
 import (
 	"bank_app/internal/api/helpers"
 	"bank_app/internal/api/models"
+	"bank_app/internal/monitoring"
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // создание нового счёта
@@ -18,7 +20,7 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		a.metrics.RecordError(err.Error(), "CreateAccount")
+		a.metrics.RecordError(string(monitoring.ErrExtractUserId), "CreateAccount")
 		a.logger.Error("Error in CreateAccount", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -28,7 +30,7 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 
 	// получаем валюту счета с фронта
 	if err := c.ShouldBindJSON(&newAccount); err != nil {
-		a.metrics.RecordError(err.Error(), "CreateAccount")
+		a.metrics.RecordError(string(monitoring.ErrBadRequest), "CreateAccount")
 		a.logger.Error("Error in CreateAccount", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -44,7 +46,7 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 	// создаем счет
 	accountId, err := a.accountsService.AccountAdd(ctx, newAccount)
 	if err != nil {
-		a.metrics.RecordError(err.Error(), "CreateAccount")
+		a.metrics.RecordError(string(monitoring.ErrBusinessLogic), "CreateAccount")
 		a.logger.Error("Error in CreateAccount", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -63,7 +65,7 @@ func (a *AccountsHandler) GetAllUserAccounts(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		a.metrics.RecordError(err.Error(), "GetAllUserAccounts")
+		a.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetAllUserAccounts")
 		a.logger.Error("Error in GetAllUserAccounts", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -76,7 +78,7 @@ func (a *AccountsHandler) GetAllUserAccounts(c *gin.Context) {
 	// получаем список счетов конкретного пользователя
 	accounts, err := a.accountsService.AllAccountsGet(ctx, userID)
 	if err != nil {
-		a.metrics.RecordError(err.Error(), "GetAllUserAccounts")
+		a.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetAllUserAccounts")
 		a.logger.Error("Error in GetAllUserAccounts", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -93,7 +95,7 @@ func (a *AccountsHandler) GetAccountById(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		a.metrics.RecordError(err.Error(), "GetAccountById")
+		a.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetAccountById")
 		a.logger.Error("Error in GetAccountById", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -103,7 +105,7 @@ func (a *AccountsHandler) GetAccountById(c *gin.Context) {
 	idStr := c.Param("account_id")
 	accountID, err := uuid.Parse(idStr)
 	if err != nil {
-		a.metrics.RecordError(err.Error(), "GetAccountById")
+		a.metrics.RecordError(string(monitoring.ErrParseUUID), "GetAccountById")
 		a.logger.Error("Error in GetAccountById", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
 		return
@@ -116,7 +118,7 @@ func (a *AccountsHandler) GetAccountById(c *gin.Context) {
 	// получаем счет из БД
 	account, err := a.accountsService.AccountGet(ctx, userID, accountID)
 	if err != nil {
-		a.metrics.RecordError(err.Error(), "GetAccountById")
+		a.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetAccountById")
 		a.logger.Error("Error in GetAccountById", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -133,7 +135,7 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		a.metrics.RecordError(err.Error(), "DeleteAccount")
+		a.metrics.RecordError(string(monitoring.ErrExtractUserId), "DeleteAccount")
 		a.logger.Error("Error in DeleteAccount", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -143,7 +145,7 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 	idStr := c.Param("account_id")
 	accountID, err := uuid.Parse(idStr)
 	if err != nil {
-		a.metrics.RecordError(err.Error(), "DeleteAccount")
+		a.metrics.RecordError(string(monitoring.ErrParseUUID), "DeleteAccount")
 		a.logger.Error("Error in DeleteAccount", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
 		return
@@ -156,7 +158,7 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 	// удаляем счет
 	err = a.accountsService.AccountDelete(ctx, userID, accountID)
 	if err != nil {
-		a.metrics.RecordError(err.Error(), "DeleteAccount")
+		a.metrics.RecordError(string(monitoring.ErrBusinessLogic), "DeleteAccount")
 		a.logger.Error("Error in DeleteAccount", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

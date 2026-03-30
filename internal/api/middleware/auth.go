@@ -4,6 +4,7 @@ import (
 	"bank_app/internal/api/jwt"
 	"bank_app/internal/api/models"
 	"bank_app/pkg/logger"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -11,8 +12,6 @@ import (
 // аус-мидлвар для всех
 func Auth(jwtService jwt.TokenService, logger logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		defer c.Next()
-
 		value, err := c.Cookie("cookie")
 		if err != nil {
 			logger.Error("Error in Auth-middleware", "error:", err)
@@ -39,14 +38,19 @@ func Auth(jwtService jwt.TokenService, logger logger.Logger) gin.HandlerFunc {
 
 		c.Set("UserId", *claims.UserId)
 		c.Set("UserRole", claims.Role)
+
+		logger.Info("Auth debug",
+			"userId", *claims.UserId,
+			"role", claims.Role,
+			"role_type", fmt.Sprintf("%T", claims.Role))
+
+		c.Next()
 	}
 }
 
 // role-check для базового и выше
 func AuthUser(logger logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		defer c.Next()
-
 		UserRole, exist := c.Get("UserRole")
 		if !exist {
 			logger.Error("Error in AuthUser-middleware", "error:", "user role not found")
@@ -61,13 +65,20 @@ func AuthUser(logger logger.Logger) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		logger.Info("AuthUser debug",
+			"UserRole", UserRole,
+			"UserRole_type", fmt.Sprintf("%T", UserRole),
+			"RoleBasic", models.RoleBasic,
+			"RoleBasic_type", fmt.Sprintf("%T", models.RoleBasic))
+
+		c.Next()
 	}
 }
 
 // role-check для верификатора и выше
 func AuthVerificator(logger logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		defer c.Next()
 
 		UserRole, exist := c.Get("UserRole")
 		if !exist {
@@ -83,13 +94,14 @@ func AuthVerificator(logger logger.Logger) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		c.Next()
 	}
 }
 
 // role-check для админа
 func AuthAdmin(logger logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		defer c.Next()
 
 		UserRole, exist := c.Get("UserRole")
 		if !exist {
@@ -105,5 +117,7 @@ func AuthAdmin(logger logger.Logger) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		c.Next()
 	}
 }

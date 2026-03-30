@@ -1,0 +1,779 @@
+openapi: 3.0.0
+
+info:
+  title: BankApp API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Локальный сервер разработки
+
+tags:
+  - name: Auth
+    description: Операции аутентификации (регистрация, вход, выход)
+  - name: Users
+    description: Управление пользователями
+  - name: Admin
+    description: Административные операции
+  - name: Accounts
+    description: Управление банковскими счетами
+  - name: Transactions
+    description: Операции с транзакциями
+  - name: Verificator
+    description: Операции верификатора
+
+components:
+  securitySchemes:
+    cookieAuth:
+      $ref: "./components.yaml#/components/securitySchemes/cookieAuth"
+  
+  schemas:
+    Error:
+      $ref: "./components.yaml#/components/schemas/Error"
+    SuccessResponse:
+      $ref: "./components.yaml#/components/schemas/SuccessResponse"
+    Currency:
+      $ref: "./components.yaml#/components/schemas/Currency"
+    UserRegister:
+      $ref: "./components.yaml#/components/schemas/UserRegister"
+    UserAuthorization:
+      $ref: "./components.yaml#/components/schemas/UserAuthorization"
+    UserUpdate:
+      $ref: "./components.yaml#/components/schemas/UserUpdate"
+    UserGet:
+      $ref: "./components.yaml#/components/schemas/UserGet"
+    AdminRegister:
+      $ref: "./components.yaml#/components/schemas/AdminRegister"
+    ChangeRoleRequest:
+      $ref: "./components.yaml#/components/schemas/ChangeRoleRequest"
+    AccountCreate:
+      $ref: "./components.yaml#/components/schemas/AccountCreate"
+    Account:
+      $ref: "./components.yaml#/components/schemas/Account"
+    Transaction:
+      $ref: "./components.yaml#/components/schemas/Transaction"
+    TransactionTransfer:
+      $ref: "./components.yaml#/components/schemas/TransactionTransfer"
+    TransactionIncoming:
+      $ref: "./components.yaml#/components/schemas/TransactionIncoming"
+    TransactionOutcoming:
+      $ref: "./components.yaml#/components/schemas/TransactionOutcoming"
+
+paths:
+  /api/v1/auth/sign-up:
+    post:
+      summary: Регистрация нового пользователя
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegister"
+      responses:
+        "201":
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    format: uuid
+                    example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/auth/sign-in:
+    post:
+      summary: Авторизация пользователя
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserAuthorization"
+      responses:
+        "200":
+          description: Пользователь успешно авторизован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    format: uuid
+                    example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Неверные учетные данные
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/auth/sign-out:
+    post:
+      summary: Выход из системы
+      tags:
+        - Auth
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Успешный выход из системы
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/basic/user:
+    get:
+      summary: Получение данных текущего пользователя
+      tags:
+        - Users
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Успешный ответ с данными пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/UserGet"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    patch:
+      summary: Обновление данных текущего пользователя
+      tags:
+        - Users
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Данные пользователя успешно обновлены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated_user:
+                    $ref: "#/components/schemas/UserGet"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Удаление текущего пользователя
+      tags:
+        - Users
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Пользователь успешно удален
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/admin/users:
+    post:
+      summary: Создание администратора или верификатора
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminRegister"
+      responses:
+        "201":
+          description: Пользователь успешно создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  admin_or_verificator_id:
+                    type: string
+                    format: uuid
+                    example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Доступ запрещен (требуется роль Admin)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      summary: Получение списка пользователей с фильтром по роли
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: role
+          in: query
+          required: true
+          description: Роль пользователей для фильтрации
+          schema:
+            type: string
+            enum: [Basic, Verificator, Admin]
+          example: "Verificator"
+      responses:
+        "200":
+          description: Успешный ответ со списком пользователей
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/UserGet"
+        "403":
+          description: Доступ запрещен (требуется роль Admin)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/admin/users/{user_id}:
+    patch:
+      summary: Изменение роли пользователя
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: string
+            format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeRoleRequest"
+      responses:
+        "200":
+          description: Роль пользователя успешно изменена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/UserGet"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Доступ запрещен (требуется роль Admin)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/basic/accounts:
+    get:
+      summary: Получение списка всех счетов пользователя
+      tags:
+        - Accounts
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Успешный ответ со списком счетов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Account"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Создание нового счета
+      tags:
+        - Accounts
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountCreate"
+      responses:
+        "201":
+          description: Счет успешно создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  account_id:
+                    type: string
+                    format: uuid
+                    example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/basic/accounts/{account_id}:
+    get:
+      summary: Получение информации о конкретном счете
+      tags:
+        - Accounts
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          description: Идентификатор счета
+          schema:
+            type: string
+            format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+      responses:
+        "200":
+          description: Успешный ответ с данными счета
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  account:
+                    $ref: "#/components/schemas/Account"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Удаление счета
+      tags:
+        - Accounts
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          description: Идентификатор счета
+          schema:
+            type: string
+            format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+      responses:
+        "200":
+          description: Счет успешно удален
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/basic/transactions:
+    get:
+      summary: Получение всех транзакций пользователя
+      tags:
+        - Transactions
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Успешный ответ со списком транзакций
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Transaction"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/basic/transactions/{transaction_id}:
+    get:
+      summary: Получение информации о конкретной транзакции
+      tags:
+        - Transactions
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          description: Идентификатор транзакции
+          schema:
+            type: string
+            format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+      responses:
+        "200":
+          description: Успешный ответ с данными транзакции
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction:
+                    $ref: "#/components/schemas/Transaction"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/basic/transactions/transfer:
+    post:
+      summary: Внутренний перевод средств
+      tags:
+        - Transactions
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionTransfer"
+      responses:
+        "200":
+          description: Перевод успешно выполнен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction_id:
+                    type: string
+                    format: uuid
+                    example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Доступ запрещен (администраторы и верификаторы не могут выполнять переводы)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/basic/accounts/{account_id}/transactions:
+    get:
+      summary: Получение транзакций по конкретному счету
+      tags:
+        - Transactions
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          description: Идентификатор счета
+          schema:
+            type: string
+            format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+      responses:
+        "200":
+          description: Успешный ответ со списком транзакций счета
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  account_transactions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Transaction"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/verificator/accounts/transactions/income:
+    post:
+      summary: Пополнение счета (только для верификаторов и администраторов)
+      tags:
+        - Verificator
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionIncoming"
+      responses:
+        "200":
+          description: Счет успешно пополнен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction_id:
+                    type: string
+                    format: uuid
+                    example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Доступ запрещен (требуется роль Verificator или Admin)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/verificator/accounts/transactions/outcome:
+    post:
+      summary: Списание со счета (только для верификаторов и администраторов)
+      tags:
+        - Verificator
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionOutcoming"
+      responses:
+        "200":
+          description: Средства успешно списаны
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction_id:
+                    type: string
+                    format: uuid
+                    example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+        "400":
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Доступ запрещен (требуется роль Verificator или Admin)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"

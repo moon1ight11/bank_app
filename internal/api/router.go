@@ -64,7 +64,7 @@ func (r *Router) Init(jwtService jwt.TokenService, logger logger.Logger, metrics
 	// авторизация
 	authGroup.POST("/sign-in", r.authHandler.SignIn)
 	// разлогин
-	authGroup.GET("/sign-out", r.authHandler.SignOut)
+	authGroup.POST("/sign-out", middleware.Auth(jwtService, logger), r.authHandler.SignOut)
 
 	// БАЗОВЫЙ // --- любые верифицированные пользователи
 	// получение данных пользователя
@@ -102,7 +102,7 @@ func (r *Router) Init(jwtService jwt.TokenService, logger logger.Logger, metrics
 	// список админов или верификаторов
 	adminGroup.GET("/users", r.usersHandler.GetAllUsers)
 	// обновление роли пользователя
-	adminGroup.PATCH("/users", r.usersHandler.ChangeRole)
+	adminGroup.PATCH("/users/:user_id", r.usersHandler.ChangeRole)
 }
 
 func (r *Router) GetEngine() *gin.Engine {

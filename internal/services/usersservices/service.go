@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"regexp"
+	"strings"
 	"time"
 )
 
@@ -60,6 +62,15 @@ func (u *UsersService) UserVerification(ctx context.Context, userAutoriz models.
 
 // добавление базового пользователя
 func (u *UsersService) UserAdd(ctx context.Context, user models.UserRegister) (uuid.UUID, error) {
+	// проверка почты и номера телефона на валидность
+	if isValidEmail(user.Email) == false {
+		return uuid.Nil, fmt.Errorf("error in UserAdd: email is not valid")
+	}
+
+	if isValidPhoneNumber(user.PhoneNumber) == false {
+		return uuid.Nil, fmt.Errorf("error in UserAdd: phone number is not valid")
+	}
+
 	// проверка, что почта и номер не заняты
 	check, err := u.UserCheck(ctx, user.PhoneNumber, user.Email)
 	if err != nil {
@@ -69,8 +80,6 @@ func (u *UsersService) UserAdd(ctx context.Context, user models.UserRegister) (u
 	if check {
 		return uuid.Nil, fmt.Errorf("error in UserAdd: userCheck is failed")
 	}
-
-	user.Role = models.RoleBasic
 
 	// хэширование пароля
 	hashPass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
@@ -97,13 +106,22 @@ func (u *UsersService) UserAdd(ctx context.Context, user models.UserRegister) (u
 
 // создание админа/верификатора
 func (u *UsersService) AdminAdd(ctx context.Context, admin models.UserRegister) (uuid.UUID, error) {
+	// проверка почты и номера телефона на валидность
+	if isValidEmail(admin.Email) == false {
+		return uuid.Nil, fmt.Errorf("error in AdminAdd: email is not valid")
+	}
+
+	if isValidPhoneNumber(admin.PhoneNumber) == false {
+		return uuid.Nil, fmt.Errorf("error in AdminAdd: phone number is not valid")
+	}
+
 	// проверка, что почта и номер не заняты
 	check, err := u.UserCheck(ctx, admin.PhoneNumber, admin.Email)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("error in AdminAdd: %w", err)
 	}
 	if check {
-		return uuid.Nil, fmt.Errorf("error i AdminAdd: userCheck is failed")
+		return uuid.Nil, fmt.Errorf("error in AdminAdd: userCheck is failed")
 	}
 
 	// хэширование пароля
@@ -249,6 +267,11 @@ func (u *UsersService) UserUpdate(
 	}
 
 	if email != nil {
+		// проверка валидности почты
+		if isValidEmail(*email) == false {
+			return fmt.Errorf("error in UserUpdate: email is not valid")
+		}
+
 		// проверяем что email не занят
 		exist, err := u.usersRepo.CheckUserEmailTx(ctx, *email, transaction)
 		if err != nil {
@@ -266,6 +289,11 @@ func (u *UsersService) UserUpdate(
 	}
 
 	if phone != nil {
+		// проверка валидности номера
+		if isValidPhoneNumber(*phone) == false {
+			return fmt.Errorf("error in UserUpdate: phone number is not valid")
+		}
+
 		// проверяем что телефон не занят
 		exist, err := u.usersRepo.CheckUserPhoneNumberTx(ctx, *phone, transaction)
 		if err != nil {
@@ -283,6 +311,11 @@ func (u *UsersService) UserUpdate(
 	}
 
 	if tz != nil {
+		// проверка валидности зоны
+		if isValidTimezone(*tz) == false {
+			return fmt.Errorf("error in UserUpdate: timezone is not valid")
+		}
+
 		err = u.usersRepo.UpdateTZ(ctx, *tz, ID, transaction)
 		if err != nil {
 			return fmt.Errorf("error in UserUpdate: %w", err)
@@ -358,4 +391,58 @@ func (u *UsersService) RoleChange(ctx context.Context, userID uuid.UUID, role mo
 	}
 
 	return nil
+}
+
+// проверка номера телефона
+func isValidPhoneNumber(phone string) bool {
+	cleaned := strings.TrimSpace(phone)
+	cleaned = strings.ReplaceAll(cleaned, " ", "")
+	cleaned = strings.ReplaceAll(cleaned, "-", "")
+	cleaned = strings.ReplaceAll(cleaned, "(", "")
+	cleaned = strings.ReplaceAll(cleaned, ")", "")
+
+	patterns := []string{
+		`^\+?[0-9]{10,15}$`,
+		`^8[0-9]{10}$`,
+		`^\+7[0-9]{10}$`,
+		`^[0-9]{10,15}$`,
+	}
+
+	for _, pattern := range patterns {
+		matched, err := regexp.MatchString(pattern, cleaned)
+		if err == nil && matched {
+			return true
+		}
+	}
+	return false
+}
+
+// проверка временной зоны
+func isValidTimezone(timezone string) bool {
+	pattern := `^UTC[+-](0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$`
+	matched, err := regexp.MatchString(pattern, timezone)
+	if err != nil {
+		return false
+	}
+
+	if !matched {
+		return false
+	}
+
+	return true
+}
+
+// проверка почты
+func isValidEmail(email string) bool {
+	pattern := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
+	matched, err := regexp.MatchString(pattern, email)
+	if err != nil {
+		return false
+	}
+
+	if !matched {
+		return false
+	}
+
+	return true
 }

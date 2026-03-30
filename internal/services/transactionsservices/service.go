@@ -239,6 +239,10 @@ func (t *TransactionsService) TransactionTransfer(ctx context.Context, transacti
 		return uuid.Nil, fmt.Errorf("error in TransactionTransfer: different currencies")
 	}
 
+	if string(accountFrom.Currency) != string(transaction.Currency) {
+		return uuid.Nil, fmt.Errorf("error in TransactionTransfer: wrong currency in transaction")
+	}
+
 	// проверяем, что переводится какая-то сумма
 	if transaction.Amount <= 0 {
 		return uuid.Nil, fmt.Errorf("error in TransactionTransfer: zero amount")

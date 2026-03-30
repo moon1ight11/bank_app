@@ -118,7 +118,7 @@ func (db *Repo) GetUsersByRole(ctx context.Context, role string) ([]GetUser, err
 	query := `
 				SELECT id, name, surname, email, phone_number, timezone, role
 				FROM bank_app.users
-				WHERE role = $1
+				WHERE ($1 = '' OR role = $1::bank_app.ROLES)
 			`
 	var users []GetUser
 	rows, err := db.DB.QueryContext(ctx, query, role)

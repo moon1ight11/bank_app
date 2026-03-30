@@ -1,0 +1,329 @@
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: cookie
+      description: Cookie-based аутентификация
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: "Сообщение об ошибке"
+
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "successful"
+
+    Currency:
+      type: string
+      enum: [RUB, EUR, USD]
+      example: "RUB"
+
+
+    UserRegister:
+      type: object
+      required:
+        - name
+        - surname
+        - email
+        - password
+        - phone_number
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "Иван"
+        surname:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "Иванов"
+        email:
+          type: string
+          format: email
+          example: "ivan@example.com"
+        password:
+          type: string
+          example: "securepassword123"
+        phone_number:
+          type: string
+          example: "+79991234567"
+
+    AdminRegister:
+      type: object
+      required:
+        - name
+        - surname
+        - email
+        - password
+        - phone_number
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "Иван"
+        surname:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "Иванов"
+        email:
+          type: string
+          format: email
+          example: "ivan@example.com"
+        password:
+          type: string
+          example: "securepassword123"
+        phone_number:
+          type: string
+          example: "+79991234567"
+        role:
+          type: string
+          enum: [Basic, Verificator, Admin]
+          example: "Basic"
+
+    UserAuthorization:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "ivan@example.com"
+        password:
+          type: string
+          example: "securepassword123"
+
+    UserUpdate:
+      type: object
+      description: "Все поля опциональны. Передаются только те поля, которые нужно обновить"
+      properties:
+        name:
+          type: string
+          nullable: true
+          example: "Петр"
+        surname:
+          type: string
+          nullable: true
+          example: "Петров"
+        password:
+          type: string
+          nullable: true
+          example: "newpassword123"
+        email:
+          type: string
+          format: email
+          nullable: true
+          example: "petr@example.com"
+        phone_number:
+          type: string
+          nullable: true
+          example: "+79997654321"
+        timezone:
+          type: string
+          nullable: true
+          example: "UTC+3"
+
+    UserGet:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+        name:
+          type: string
+          example: "Иван"
+        surname:
+          type: string
+          example: "Иванов"
+        email:
+          type: string
+          format: email
+          example: "ivan@example.com"
+        phone_number:
+          type: string
+          example: "+79991234567"
+        role:
+          type: string
+          enum: [Basic, Verificator, Admin]
+          example: "Basic"
+        timezone:
+          type: string
+          example: "UTC+3"
+
+    ChangeRoleRequest:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum: [Basic, Verificator, Admin]
+          example: "Verificator"
+
+
+    AccountCreate:
+      type: object
+      required:
+        - currency
+      properties:
+        currency:
+          $ref: "#/components/schemas/Currency"
+
+    Account:
+      type: object
+      properties:
+        account_id:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+        user_id:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+        balance:
+          type: integer
+          example: 10000
+          description: "Баланс счета (в копейках/центах)"
+        currency:
+          $ref: "#/components/schemas/Currency"
+
+
+    Transaction:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+        user_from:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+          description: "ID пользователя-отправителя"
+        account_from:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+          description: "ID счета-отправителя"
+        user_to:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+          description: "ID пользователя-получателя"
+        account_to:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+          description: "ID счета-получателя"
+        amount:
+          type: integer
+          example: 5000
+          description: "Сумма транзакции (в копейках/центах)"
+        currency:
+          $ref: "#/components/schemas/Currency"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    TransactionTransfer:
+      type: object
+      required:
+        - user_from
+        - account_from
+        - user_to
+        - account_to
+        - amount
+        - currency
+      properties:
+        user_from:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+          description: "ID пользователя-отправителя (должен совпадать с авторизованным)"
+        account_from:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+          description: "ID счета-отправителя"
+        user_to:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+          description: "ID пользователя-получаетля"
+        account_to:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+          description: "ID счета-получателя"
+        amount:
+          type: integer
+          example: 5000
+          description: "Сумма перевода (в копейках/центах)"
+        currency:
+          $ref: "#/components/schemas/Currency"
+
+    TransactionIncoming:
+      type: object
+      required:
+        - account_to
+        - user_to
+        - amount
+        - currency
+      properties:
+        account_to:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+          description: "ID счета-получателя"
+        user_to:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+          description: "ID получателя"
+        amount:
+          type: integer
+          example: 10000
+          description: "Сумма пополнения (в копейках/центах)"
+        currency:
+          $ref: "#/components/schemas/Currency"
+
+    TransactionOutcoming:
+      type: object
+      required:
+        - account_from
+        - user_from
+        - amount
+        - currency
+      properties:
+        account_from:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+          description: "ID счета-отправителя"
+        user_from:
+          type: string
+          format: uuid
+          example: "b6609ddd-95f4-42f0-993e-7f07f3fa1d5b"
+          description: "ID отправите"
+        amount:
+          type: integer
+          example: 5000
+          description: "Сумма списания (в копейках/центах)"
+        currency:
+          $ref: "#/components/schemas/Currency"

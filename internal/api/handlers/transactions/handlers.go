@@ -3,11 +3,13 @@ package transactionshandlers
 import (
 	"bank_app/internal/api/helpers"
 	"bank_app/internal/api/models"
+	"bank_app/internal/monitoring"
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // получение всех транзакций пользователя
@@ -18,7 +20,7 @@ func (t *TransactionsHandler) GetAllUserTransactions(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		t.metrics.RecordError(err.Error(), "GetAllUserTransactions")
+		t.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetAllUserTransactions")
 		t.logger.Error("Error in GetAllUserTransactions", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -31,7 +33,7 @@ func (t *TransactionsHandler) GetAllUserTransactions(c *gin.Context) {
 	// получаем список транзакций
 	transactions, err := t.transactionsService.AllTransactionsGet(ctx, userID)
 	if err != nil {
-		t.metrics.RecordError(err.Error(), "GetAllUserTransactions")
+		t.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetAllUserTransactions")
 		t.logger.Error("Error in GetAllUserTransactions", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -48,7 +50,7 @@ func (t *TransactionsHandler) GetAllAccountTransactions(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		t.metrics.RecordError(err.Error(), "GetAllAccountTransactions")
+		t.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetAllAccountTransactions")
 		t.logger.Error("Error in GetAllAccountTransactions", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -58,7 +60,7 @@ func (t *TransactionsHandler) GetAllAccountTransactions(c *gin.Context) {
 	idStr := c.Param("account_id")
 	accountID, err := uuid.Parse(idStr)
 	if err != nil {
-		t.metrics.RecordError(err.Error(), "GetAllAccountTransactions")
+		t.metrics.RecordError(string(monitoring.ErrParseUUID), "GetAllAccountTransactions")
 		t.logger.Error("Error in GetAllAccountTransactions", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
 		return
@@ -71,7 +73,7 @@ func (t *TransactionsHandler) GetAllAccountTransactions(c *gin.Context) {
 	// получаем список транзакций
 	transactions, err := t.transactionsService.AccountTransactionsGet(ctx, userID, accountID)
 	if err != nil {
-		t.metrics.RecordError(err.Error(), "GetAllAccountTransactions")
+		t.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetAllAccountTransactions")
 		t.logger.Error("Error in GetAllAccountTransactions", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -88,7 +90,7 @@ func (t *TransactionsHandler) GetTransactionByID(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		t.metrics.RecordError(err.Error(), "GetTransactionByID")
+		t.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetTransactionByID")
 		t.logger.Error("Error in GetTransactionByID", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -98,7 +100,7 @@ func (t *TransactionsHandler) GetTransactionByID(c *gin.Context) {
 	idStr := c.Param("transaction_id")
 	transactionID, err := uuid.Parse(idStr)
 	if err != nil {
-		t.metrics.RecordError(err.Error(), "GetTransactionByID")
+		t.metrics.RecordError(string(monitoring.ErrParseUUID), "GetTransactionByID")
 		t.logger.Error("Error in GetTransactionByID", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
 		return
@@ -111,7 +113,7 @@ func (t *TransactionsHandler) GetTransactionByID(c *gin.Context) {
 	// получаем транзакцию
 	transaction, err := t.transactionsService.TransactionByIdGet(ctx, userID, transactionID)
 	if err != nil {
-		t.metrics.RecordError(err.Error(), "GetTransactionByID")
+		t.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetTransactionByID")
 		t.logger.Error("Error in GetTransactionByID", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -128,7 +130,7 @@ func (t *TransactionsHandler) CreateIncomingTransaction(c *gin.Context) {
 	// получаем с фронта тело транзакции
 	var transaction models.Transaction
 	if err := c.ShouldBindJSON(&transaction); err != nil {
-		t.metrics.RecordError(err.Error(), "CreateIncomingTransaction")
+		t.metrics.RecordError(string(monitoring.ErrBadRequest), "CreateIncomingTransaction")
 		t.logger.Error("Error in CreateIncomingTransaction", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -140,7 +142,7 @@ func (t *TransactionsHandler) CreateIncomingTransaction(c *gin.Context) {
 
 	transactionID, err := t.transactionsService.TransactionIncoming(ctx, transaction)
 	if err != nil {
-		t.metrics.RecordError(err.Error(), "CreateIncomingTransaction")
+		t.metrics.RecordError(string(monitoring.ErrBusinessLogic), "CreateIncomingTransaction")
 		t.logger.Error("Error in CreateIncomingTransaction", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -164,7 +166,7 @@ func (t *TransactionsHandler) CreateOutcomingTransaction(c *gin.Context) {
 	// получаем с фронта тело транзакции
 	var transaction models.Transaction
 	if err := c.ShouldBindJSON(&transaction); err != nil {
-		t.metrics.RecordError(err.Error(), "CreateOutcomingTransaction")
+		t.metrics.RecordError(string(monitoring.ErrBadRequest), "CreateOutcomingTransaction")
 		t.logger.Error("Error in CreateOutcomingTransaction", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -176,7 +178,7 @@ func (t *TransactionsHandler) CreateOutcomingTransaction(c *gin.Context) {
 
 	transactionID, err := t.transactionsService.TransactionOutcoming(ctx, transaction)
 	if err != nil {
-		t.metrics.RecordError(err.Error(), "CreateOutcomingTransaction")
+		t.metrics.RecordError(string(monitoring.ErrBusinessLogic), "CreateOutcomingTransaction")
 		t.logger.Error("Error in CreateOutcomingTransaction", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -200,7 +202,7 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
-		t.metrics.RecordError(err.Error(), "CreateTransferTransaction")
+		t.metrics.RecordError(string(monitoring.ErrExtractUserId), "CreateTransferTransaction")
 		t.logger.Error("Error in CreateTransferTransaction", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -209,7 +211,7 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 	// получаем роль пользователя из контекста
 	userRole, exist := c.Get("UserRole")
 	if !exist {
-		t.metrics.RecordError("Error in CreateTransferTransaction: users role not found", "CreateTransferTransaction")
+		t.metrics.RecordError(string(monitoring.ErrInternal), "CreateTransferTransaction")
 		t.logger.Warn("Error in CreateTransferTransaction", "warn:", "users role not found")
 		c.JSON(http.StatusForbidden, gin.H{"error": "User role not found"})
 		return
@@ -217,7 +219,7 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 
 	// запрещаем делать транзакции админам и верификаторам
 	if userRole != models.RoleBasic {
-		t.metrics.RecordError("Error in CreateTransferTransaction: try to make transfer by user/verificator", "CreateTransferTransaction")
+		t.metrics.RecordError(string(monitoring.ErrForbidden), "CreateTransferTransaction")
 		t.logger.Warn("Error in CreateTransferTransaction", "warn:", "try to make transfer by user/verificator")
 		c.JSON(http.StatusForbidden, gin.H{"error": "Admin and Verificator cant make transfer"})
 		return
@@ -226,7 +228,7 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 	// получаем с фронта тело транзакции
 	var transaction models.Transaction
 	if err := c.ShouldBindJSON(&transaction); err != nil {
-		t.metrics.RecordError(err.Error(), "CreateTransferTransaction")
+		t.metrics.RecordError(string(monitoring.ErrBadRequest), "CreateTransferTransaction")
 		t.logger.Error("Error in CreateTransferTransaction", "error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -234,7 +236,7 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 
 	// запрещаем делать перевод не от себя
 	if transaction.UserFrom != userID {
-		t.metrics.RecordError("Error in CreateTransferTransaction: transaction from foreign user", "CreateTransferTransaction")
+		t.metrics.RecordError(string(monitoring.ErrForbidden), "CreateTransferTransaction")
 		t.logger.Warn("Error in CreateTransferTransaction", "warn:", "transaction from foreign user")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "transaction from foreign user"})
 		return
@@ -246,7 +248,7 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 
 	transactionID, err := t.transactionsService.TransactionTransfer(ctx, transaction)
 	if err != nil {
-		t.metrics.RecordError(err.Error(), "CreateTransferTransaction")
+		t.metrics.RecordError(string(monitoring.ErrBusinessLogic), "CreateTransferTransaction")
 		t.logger.Error("Error in CreateTransferTransaction", "error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -11,6 +11,11 @@ const (
 	RoleAdmin       Role = "Admin"
 )
 
+// роль для изменения
+type ChangeRoleRequest struct {
+	Role Role `json:"role" binding:"required,oneof=Basic Verificator Admin"`
+}
+
 // регистрация юзера
 type UserRegister struct {
 	Name        string `json:"name" binding:"required,min=2,max=50"`
@@ -33,7 +38,7 @@ type UserUpdate struct {
 	Surname     *string   `json:"surname"`
 	Password    *string   `json:"password"`
 	PhoneNumber *string   `json:"phone_number"`
-	Email       *string   `json:"email" binding:"required,email"`
+	Email       *string   `json:"email"`
 	Timezone    *string   `json:"timezone"`
 }
 
