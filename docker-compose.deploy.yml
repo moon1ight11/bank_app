@@ -1,0 +1,84 @@
+services:
+  postgres:
+    image: postgres:17.5-alpine3.21
+    ports:
+      - 15432:5432
+    environment:
+      - POSTGRES_USER=fedor
+      - POSTGRES_PASSWORD=fedor_pass
+      - POSTGRES_DB=bank
+    volumes:
+      - "./temp_files/postgresql_data:/var/lib/postgresql/data"
+    networks:
+      local_todo_app:
+        ipv4_address: 172.28.0.2
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      local_todo_app:
+        ipv4_address: 172.28.0.3
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      local_todo_app:
+        ipv4_address: 172.28.0.4
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      local_todo_app:
+        ipv4_address: 172.28.0.5
+    depends_on:
+      - prometheus
+
+  api:
+    image: local/api
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+      - prometheus
+      - grafana
+    ports:
+      - 127.0.0.1:8080:8080
+    volumes:
+    - ./config.yaml:/app/config.yaml
+    networks:
+      local_todo_app:
+        ipv4_address: 172.28.0.6
+
+networks:
+  local_todo_app:
+    ipam:
+       driver: default
+       config:
+         - subnet: 172.28.0.0/16
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  redis_data:
