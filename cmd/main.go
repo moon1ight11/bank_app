@@ -34,7 +34,7 @@ func main() {
 
 	// создание сервера
 	srv := &http.Server{
-		Addr:    "0.0.0.0:8080",
+		Addr:    fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
 		Handler: deps.Router.GetEngine(),
 	}
 
@@ -45,7 +45,7 @@ func main() {
 
 	// запуск сервера
 	go func() {
-		deps.Logger.Info("Server is starting on port :8080")
+		deps.Logger.Info("Server is starting", "port", cfg.Server.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			deps.Logger.Error("Failed to run server:", "error", err)
 			serverError <- err

@@ -30,7 +30,7 @@ func NewStorage(cfg *config.Config) (*DataBase, error) {
 		cfg.Database.Port,
 		cfg.Database.User,
 		cfg.Database.Password,
-		cfg.Database.Name,
+		cfg.Database.DBName,
 	)
 
 	db, err := sql.Open("postgres", connStr)

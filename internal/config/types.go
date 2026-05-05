@@ -12,14 +12,14 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port int    `mapstructure:"port"`
+	Port string `mapstructure:"port"`
 	Host string `mapstructure:"host"`
 }
 
 type DatabaseConfig struct {
 	Host          string `mapstructure:"host"`
 	Port          int    `mapstructure:"port"`
-	Name          string `mapstructure:"name"`
+	DBName        string `mapstructure:"db_name"`
 	User          string `mapstructure:"user"`
 	Password      string `mapstructure:"password"`
 	MigrationsDir string `mapstructure:"migrationsDir"`
