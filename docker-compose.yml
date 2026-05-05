@@ -6,7 +6,7 @@ services:
     environment:
       - POSTGRES_USER=fedor
       - POSTGRES_PASSWORD=fedor_pass
-      - POSTGRES_DB=bank
+      - POSTGRES_DB=bank_app
     volumes:
       - "./temp_files/postgresql_data:/var/lib/postgresql/data"
     networks:
