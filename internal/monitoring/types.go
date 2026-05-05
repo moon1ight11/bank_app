@@ -3,7 +3,7 @@ package monitoring
 type ErrorType string
 
 const (
-	ErrBadRequest    ErrorType = "validation_error"
+	ErrBadRequest    ErrorType = "bad_request_error"
 	ErrExtractUserId ErrorType = "extract_user_id_error"
 	ErrParseUUID     ErrorType = "parse_uuid_error"
 	ErrForbidden     ErrorType = "forbidden_error"
