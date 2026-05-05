@@ -15,7 +15,7 @@ func Auth(jwtService jwt.TokenService, logger logger.Logger) gin.HandlerFunc {
 		value, err := c.Cookie("cookie")
 		if err != nil {
 			logger.Error("Error in Auth-middleware", "error:", err)
-			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			c.Abort()
 			return
 		}
@@ -24,14 +24,14 @@ func Auth(jwtService jwt.TokenService, logger logger.Logger) gin.HandlerFunc {
 		token, err := jwtService.ParseToken(value, &claims)
 		if err != nil {
 			logger.Error("Error in Auth-middleware", "error:", err)
-			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			c.Abort()
 			return
 		}
 
 		if !token.Valid {
 			logger.Error("Error in Auth-middleware", "error:", "token not valid")
-			c.JSON(http.StatusForbidden, gin.H{"error": "Token not valid"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			c.Abort()
 			return
 		}
@@ -54,7 +54,7 @@ func AuthUser(logger logger.Logger) gin.HandlerFunc {
 		UserRole, exist := c.Get("UserRole")
 		if !exist {
 			logger.Error("Error in AuthUser-middleware", "error:", "user role not found")
-			c.JSON(http.StatusForbidden, gin.H{"error": "User role not found"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			c.Abort()
 			return
 		}
@@ -83,7 +83,7 @@ func AuthVerificator(logger logger.Logger) gin.HandlerFunc {
 		UserRole, exist := c.Get("UserRole")
 		if !exist {
 			logger.Error("Error in AuthVerificator-middleware", "error:", "user role not found")
-			c.JSON(http.StatusForbidden, gin.H{"error": "User role not found"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			c.Abort()
 			return
 		}
@@ -106,7 +106,7 @@ func AuthAdmin(logger logger.Logger) gin.HandlerFunc {
 		UserRole, exist := c.Get("UserRole")
 		if !exist {
 			logger.Error("Error in AuthAdmin-middleware", "error:", "user role not found")
-			c.JSON(http.StatusForbidden, gin.H{"error": "User role not found"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			c.Abort()
 			return
 		}

@@ -22,7 +22,7 @@ func (t *TransactionsHandler) GetAllUserTransactions(c *gin.Context) {
 	if err != nil {
 		t.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetAllUserTransactions")
 		t.logger.Error("Error in GetAllUserTransactions", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -35,7 +35,7 @@ func (t *TransactionsHandler) GetAllUserTransactions(c *gin.Context) {
 	if err != nil {
 		t.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetAllUserTransactions")
 		t.logger.Error("Error in GetAllUserTransactions", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -52,7 +52,7 @@ func (t *TransactionsHandler) GetAllAccountTransactions(c *gin.Context) {
 	if err != nil {
 		t.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetAllAccountTransactions")
 		t.logger.Error("Error in GetAllAccountTransactions", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -62,7 +62,7 @@ func (t *TransactionsHandler) GetAllAccountTransactions(c *gin.Context) {
 	if err != nil {
 		t.metrics.RecordError(string(monitoring.ErrParseUUID), "GetAllAccountTransactions")
 		t.logger.Error("Error in GetAllAccountTransactions", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -75,7 +75,7 @@ func (t *TransactionsHandler) GetAllAccountTransactions(c *gin.Context) {
 	if err != nil {
 		t.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetAllAccountTransactions")
 		t.logger.Error("Error in GetAllAccountTransactions", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -92,7 +92,7 @@ func (t *TransactionsHandler) GetTransactionByID(c *gin.Context) {
 	if err != nil {
 		t.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetTransactionByID")
 		t.logger.Error("Error in GetTransactionByID", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -102,7 +102,7 @@ func (t *TransactionsHandler) GetTransactionByID(c *gin.Context) {
 	if err != nil {
 		t.metrics.RecordError(string(monitoring.ErrParseUUID), "GetTransactionByID")
 		t.logger.Error("Error in GetTransactionByID", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -115,7 +115,7 @@ func (t *TransactionsHandler) GetTransactionByID(c *gin.Context) {
 	if err != nil {
 		t.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetTransactionByID")
 		t.logger.Error("Error in GetTransactionByID", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -132,7 +132,7 @@ func (t *TransactionsHandler) CreateIncomingTransaction(c *gin.Context) {
 	if err := c.ShouldBindJSON(&transaction); err != nil {
 		t.metrics.RecordError(string(monitoring.ErrBadRequest), "CreateIncomingTransaction")
 		t.logger.Error("Error in CreateIncomingTransaction", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -144,7 +144,7 @@ func (t *TransactionsHandler) CreateIncomingTransaction(c *gin.Context) {
 	if err != nil {
 		t.metrics.RecordError(string(monitoring.ErrBusinessLogic), "CreateIncomingTransaction")
 		t.logger.Error("Error in CreateIncomingTransaction", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -168,7 +168,7 @@ func (t *TransactionsHandler) CreateOutcomingTransaction(c *gin.Context) {
 	if err := c.ShouldBindJSON(&transaction); err != nil {
 		t.metrics.RecordError(string(monitoring.ErrBadRequest), "CreateOutcomingTransaction")
 		t.logger.Error("Error in CreateOutcomingTransaction", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -180,7 +180,7 @@ func (t *TransactionsHandler) CreateOutcomingTransaction(c *gin.Context) {
 	if err != nil {
 		t.metrics.RecordError(string(monitoring.ErrBusinessLogic), "CreateOutcomingTransaction")
 		t.logger.Error("Error in CreateOutcomingTransaction", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -204,7 +204,7 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 	if err != nil {
 		t.metrics.RecordError(string(monitoring.ErrExtractUserId), "CreateTransferTransaction")
 		t.logger.Error("Error in CreateTransferTransaction", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -213,7 +213,7 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 	if !exist {
 		t.metrics.RecordError(string(monitoring.ErrInternal), "CreateTransferTransaction")
 		t.logger.Warn("Error in CreateTransferTransaction", "warn:", "users role not found")
-		c.JSON(http.StatusForbidden, gin.H{"error": "User role not found"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
 
@@ -230,7 +230,7 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 	if err := c.ShouldBindJSON(&transaction); err != nil {
 		t.metrics.RecordError(string(monitoring.ErrBadRequest), "CreateTransferTransaction")
 		t.logger.Error("Error in CreateTransferTransaction", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -250,7 +250,7 @@ func (t *TransactionsHandler) CreateTransferTransaction(c *gin.Context) {
 	if err != nil {
 		t.metrics.RecordError(string(monitoring.ErrBusinessLogic), "CreateTransferTransaction")
 		t.logger.Error("Error in CreateTransferTransaction", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 

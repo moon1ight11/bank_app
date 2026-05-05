@@ -22,7 +22,7 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 	if err := c.ShouldBindJSON(&user); err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBadRequest), "SignUp")
 		u.logger.Error("Error in SignUp", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -51,7 +51,7 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "SignUp")
 		u.logger.Error("Error in SignUp", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -60,7 +60,7 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrInternal), "SignUp")
 		u.logger.Error("Error in SignUp", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -82,7 +82,7 @@ func (u *AuthHandler) SignIn(c *gin.Context) {
 	if err := c.ShouldBindJSON(&user); err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBadRequest), "SignIn")
 		u.logger.Error("Error in SignIn", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -103,7 +103,7 @@ func (u *AuthHandler) SignIn(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrForbidden), "SignIn")
 		u.logger.Error("Error in SignIn", "error:", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
@@ -112,7 +112,7 @@ func (u *AuthHandler) SignIn(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrInternal), "SignIn")
 		u.logger.Error("Error in SignIn", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -134,7 +134,7 @@ func (u *AuthHandler) SignOut(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrExtractUserId), "SignOut")
 		u.logger.Error("Error in SignOut", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 

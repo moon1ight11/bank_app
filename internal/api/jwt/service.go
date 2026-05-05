@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"bank_app/internal/api/models"
-	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -68,7 +67,7 @@ func (j *Service) GenerateToken(userID uuid.UUID, userName string, userSurname s
 
 	// валидация кастомных полей
 	if err := claims.CustomFieldsValidate(); err != nil {
-		return "", err
+		return "", fmt.Errorf("Error in GenerateToken: %w", err)
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -79,7 +78,7 @@ func (j *Service) GenerateToken(userID uuid.UUID, userName string, userSurname s
 func (j *Service) ParseToken(tokenString string, claims *Claims) (*jwt.Token, error) {
 	return jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if token.Method != jwt.SigningMethodHS256 {
-			return nil, errors.New("invalid method")
+			return nil, fmt.Errorf("Error in GenerateToken: invalid method")
 		}
 		return j.secret, nil
 	})

@@ -22,7 +22,7 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrExtractUserId), "CreateAccount")
 		a.logger.Error("Error in CreateAccount", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -32,7 +32,7 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newAccount); err != nil {
 		a.metrics.RecordError(string(monitoring.ErrBadRequest), "CreateAccount")
 		a.logger.Error("Error in CreateAccount", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ba request"})
 		return
 	}
 
@@ -48,7 +48,7 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrBusinessLogic), "CreateAccount")
 		a.logger.Error("Error in CreateAccount", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -67,7 +67,7 @@ func (a *AccountsHandler) GetAllUserAccounts(c *gin.Context) {
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetAllUserAccounts")
 		a.logger.Error("Error in GetAllUserAccounts", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -80,7 +80,7 @@ func (a *AccountsHandler) GetAllUserAccounts(c *gin.Context) {
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetAllUserAccounts")
 		a.logger.Error("Error in GetAllUserAccounts", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -97,7 +97,7 @@ func (a *AccountsHandler) GetAccountById(c *gin.Context) {
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetAccountById")
 		a.logger.Error("Error in GetAccountById", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -107,7 +107,7 @@ func (a *AccountsHandler) GetAccountById(c *gin.Context) {
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrParseUUID), "GetAccountById")
 		a.logger.Error("Error in GetAccountById", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -120,7 +120,7 @@ func (a *AccountsHandler) GetAccountById(c *gin.Context) {
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetAccountById")
 		a.logger.Error("Error in GetAccountById", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -137,7 +137,7 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrExtractUserId), "DeleteAccount")
 		a.logger.Error("Error in DeleteAccount", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -147,7 +147,7 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrParseUUID), "DeleteAccount")
 		a.logger.Error("Error in DeleteAccount", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -160,7 +160,7 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrBusinessLogic), "DeleteAccount")
 		a.logger.Error("Error in DeleteAccount", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 

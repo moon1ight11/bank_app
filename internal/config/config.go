@@ -29,14 +29,4 @@ func Load() (*Config, error) {
 // дефолтные значения полей конфигурации
 func setDefaults() {
 	viper.SetDefault("environment", "development")
-
-	viper.SetDefault("server.port", 8080)
-	viper.SetDefault("server.host", "localhost")
-
-	viper.SetDefault("database.port", 15432)
-	viper.SetDefault("database.migrationsDir", "./migrations")
-
-	viper.SetDefault("redis.db", 0)
-
-	viper.SetDefault("jwt.expiration", "24h")
 }

@@ -12,12 +12,12 @@ import (
 func (d *DataBase) UpMigrations() error {
 	goose.SetBaseFS(nil)
 	if err := goose.SetDialect("postgres"); err != nil {
-		return err
+		return fmt.Errorf("Error in UpMigrations: %w", err)
 	}
 
 	err := goose.Up(d.DB, d.MigrationsDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error in UpMigrations: %w", err)
 	}
 
 	return nil
@@ -35,12 +35,12 @@ func NewStorage(cfg *config.Config) (*DataBase, error) {
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error in NewStorage: %w", err)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error in NewStorage: %w", err)
 	}
 
 	datebase := DataBase{

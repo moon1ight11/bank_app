@@ -11,19 +11,6 @@ type Config struct {
 	Logger      Logger         `mapstructure:"logger"`
 }
 
-type Logger struct {
-	Level    string `mapstructure:"level"`
-	FilePath string `mapstructure:"filepath"`
-	MaxSize  int    `mapstructure:"maxsize"`
-}
-
-type RedisConfig struct {
-	Host     string `mapstructure:"host"`
-	Port     string `mapstructure:"port"`
-	Password string `mapstructure:"password"`
-	DB       int    `mapstructure:"db"`
-}
-
 type ServerConfig struct {
 	Port int    `mapstructure:"port"`
 	Host string `mapstructure:"host"`
@@ -41,4 +28,17 @@ type DatabaseConfig struct {
 type JWTConfig struct {
 	Secret     string        `mapstructure:"secret"`
 	Expiration time.Duration `mapstructure:"expiration"`
+}
+
+type RedisConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     string `mapstructure:"port"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"`
+}
+
+type Logger struct {
+	Level    string `mapstructure:"level"`
+	FilePath string `mapstructure:"filepath"`
+	MaxSize  int    `mapstructure:"maxsize"`
 }

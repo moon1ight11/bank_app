@@ -23,7 +23,7 @@ func (u *UsersHandler) GetUser(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetUser")
 		u.logger.Error("Error in GetUser", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -36,7 +36,7 @@ func (u *UsersHandler) GetUser(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetUser")
 		u.logger.Error("Error in GetUser", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -53,7 +53,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrExtractUserId), "UpdateUser")
 		u.logger.Error("Error in UpdateUser", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -70,7 +70,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	if err := c.ShouldBindJSON(&updatedUser); err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBadRequest), "UpdateUser")
 		u.logger.Error("Error in UpdateUser", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -138,7 +138,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "UpdateUser")
 		u.logger.Error("Error in UpdateUser", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -147,7 +147,7 @@ func (u *UsersHandler) UpdateUser(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "UpdateUser")
 		u.logger.Error("Error in UpdateUser", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -166,7 +166,7 @@ func (u *UsersHandler) DeleteUser(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrExtractUserId), "DeleteUser")
 		u.logger.Error("Error in DeleteUser", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -179,7 +179,7 @@ func (u *UsersHandler) DeleteUser(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "DeleteUser")
 		u.logger.Error("Error in DeleteUser", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -201,7 +201,7 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 	if err := c.ShouldBindJSON(&user); err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBadRequest), "CreateAdminOrVerificator")
 		u.logger.Error("Error in CreateAdminOrVerificator", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -227,7 +227,7 @@ func (u *UsersHandler) CreateAdminOrVerificator(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "CreateAdminOrVerificator")
 		u.logger.Error("Error in CreateAdminOrVerificator", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -253,7 +253,7 @@ func (u *UsersHandler) GetAllUsers(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetAllUsers")
 		u.logger.Error("Error in GetAllUsers", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -270,7 +270,7 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	if err := c.ShouldBindJSON(&role); err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBadRequest), "ChangeRole")
 		u.logger.Error("Error in ChangeRole", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -280,7 +280,7 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrParseUUID), "ChangeRole")
 		u.logger.Error("Error in ChangeRole", "error:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Error in parse uuid"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -293,7 +293,7 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "ChangeRole")
 		u.logger.Error("Error in ChangeRole", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -302,7 +302,7 @@ func (u *UsersHandler) ChangeRole(c *gin.Context) {
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "ChangeRole")
 		u.logger.Error("Error in ChangeRole", "error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
