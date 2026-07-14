@@ -11,11 +11,6 @@ const (
 	RoleAdmin       Role = "Admin"
 )
 
-// роль для изменения
-type ChangeRoleRequest struct {
-	Role Role `json:"role" binding:"required,oneof=Basic Verificator Admin"`
-}
-
 // регистрация юзера
 type UserRegister struct {
 	Name        string `json:"name" binding:"required,min=2,max=50"`
@@ -31,6 +26,13 @@ type UserAutorization struct {
 	Password string `json:"password"`
 }
 
+// получение пользователя
+type UserGet struct {
+	Id       uuid.UUID `json:"user_id"`
+	Timezone string    `json:"timezone"`
+	UserRegister
+}
+
 // обновление юзера
 type UserUpdate struct {
 	ID          uuid.UUID `json:"user_id"`
@@ -42,9 +44,7 @@ type UserUpdate struct {
 	Timezone    *string   `json:"timezone"`
 }
 
-// получение пользователя
-type UserGet struct {
-	Id       uuid.UUID `json:"user_id"`
-	Timezone string    `json:"timezone"`
-	UserRegister
+// роль для изменения
+type ChangeRoleRequest struct {
+	Role Role `json:"role" binding:"required,oneof=Basic Verificator Admin"`
 }

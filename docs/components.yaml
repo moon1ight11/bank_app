@@ -28,7 +28,6 @@ components:
       enum: [RUB, EUR, USD]
       example: "RUB"
 
-
     UserRegister:
       type: object
       required:
@@ -175,7 +174,6 @@ components:
           enum: [Basic, Verificator, Admin]
           example: "Verificator"
 
-
     AccountCreate:
       type: object
       required:
@@ -201,7 +199,6 @@ components:
           description: "Баланс счета (в копейках/центах)"
         currency:
           $ref: "#/components/schemas/Currency"
-
 
     Transaction:
       type: object

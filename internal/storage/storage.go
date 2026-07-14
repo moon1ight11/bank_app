@@ -8,7 +8,7 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-// метод DB для применения миграций
+// применение миграций
 func (d *DataBase) UpMigrations() error {
 	goose.SetBaseFS(nil)
 	if err := goose.SetDialect("postgres"); err != nil {

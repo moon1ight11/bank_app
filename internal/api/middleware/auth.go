@@ -4,7 +4,6 @@ import (
 	"bank_app/internal/api/jwt"
 	"bank_app/internal/api/models"
 	"bank_app/pkg/logger"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -39,11 +38,6 @@ func Auth(jwtService jwt.TokenService, logger logger.Logger) gin.HandlerFunc {
 		c.Set("UserId", *claims.UserId)
 		c.Set("UserRole", claims.Role)
 
-		logger.Info("Auth debug",
-			"userId", *claims.UserId,
-			"role", claims.Role,
-			"role_type", fmt.Sprintf("%T", claims.Role))
-
 		c.Next()
 	}
 }
@@ -65,12 +59,6 @@ func AuthUser(logger logger.Logger) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
-		logger.Info("AuthUser debug",
-			"UserRole", UserRole,
-			"UserRole_type", fmt.Sprintf("%T", UserRole),
-			"RoleBasic", models.RoleBasic,
-			"RoleBasic_type", fmt.Sprintf("%T", models.RoleBasic))
 
 		c.Next()
 	}

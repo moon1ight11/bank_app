@@ -14,10 +14,8 @@ import (
 
 // создание нового счёта
 func (a *AccountsHandler) CreateAccount(c *gin.Context) {
-	// записываем операцию в метрики
 	a.metrics.RecordOperation("create_account")
 
-	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrExtractUserId), "CreateAccount")
@@ -27,8 +25,6 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 	}
 
 	var newAccount models.AccountCreate
-
-	// получаем валюту счета с фронта
 	if err := c.ShouldBindJSON(&newAccount); err != nil {
 		a.metrics.RecordError(string(monitoring.ErrBadRequest), "CreateAccount")
 		a.logger.Error("Error in CreateAccount", "error:", err)
@@ -36,14 +32,11 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 		return
 	}
 
-	// устанавливаем владельцем счета пользователя
 	newAccount.UserID = userID
 
-	// создаем контекст с таймаутом
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	// создаем счет
 	accountId, err := a.accountsService.AccountAdd(ctx, newAccount)
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrBusinessLogic), "CreateAccount")
@@ -57,12 +50,10 @@ func (a *AccountsHandler) CreateAccount(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"account_id": accountId})
 }
 
-// список счетов пользователя
+// получение списка счетов пользователя
 func (a *AccountsHandler) GetAllUserAccounts(c *gin.Context) {
-	// записываем операцию в метрики
 	a.metrics.RecordOperation("get_all_users_accounts")
 
-	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetAllUserAccounts")
@@ -71,11 +62,9 @@ func (a *AccountsHandler) GetAllUserAccounts(c *gin.Context) {
 		return
 	}
 
-	// создаем контекст с таймаутом
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	// получаем список счетов конкретного пользователя
 	accounts, err := a.accountsService.AllAccountsGet(ctx, userID)
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetAllUserAccounts")
@@ -87,12 +76,10 @@ func (a *AccountsHandler) GetAllUserAccounts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"accounts": accounts})
 }
 
-// конкретный счет пользователя
+// получение одного счета пользователя
 func (a *AccountsHandler) GetAccountById(c *gin.Context) {
-	// записываем операцию в метрики
 	a.metrics.RecordOperation("get_account_by_id")
 
-	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrExtractUserId), "GetAccountById")
@@ -101,7 +88,6 @@ func (a *AccountsHandler) GetAccountById(c *gin.Context) {
 		return
 	}
 
-	// получаем id счета из параметров
 	idStr := c.Param("account_id")
 	accountID, err := uuid.Parse(idStr)
 	if err != nil {
@@ -111,11 +97,9 @@ func (a *AccountsHandler) GetAccountById(c *gin.Context) {
 		return
 	}
 
-	// создаем контекст с таймаутом
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	// получаем счет из БД
 	account, err := a.accountsService.AccountGet(ctx, userID, accountID)
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrBusinessLogic), "GetAccountById")
@@ -129,10 +113,8 @@ func (a *AccountsHandler) GetAccountById(c *gin.Context) {
 
 // удаление счета
 func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
-	// записываем операцию в метрики
 	a.metrics.RecordOperation("delete_account")
 
-	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrExtractUserId), "DeleteAccount")
@@ -141,7 +123,6 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 		return
 	}
 
-	// получаем id счета из параметров
 	idStr := c.Param("account_id")
 	accountID, err := uuid.Parse(idStr)
 	if err != nil {
@@ -151,11 +132,9 @@ func (a *AccountsHandler) DeleteAccount(c *gin.Context) {
 		return
 	}
 
-	// создаем контекст с таймаутом
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	// удаляем счет
 	err = a.accountsService.AccountDelete(ctx, userID, accountID)
 	if err != nil {
 		a.metrics.RecordError(string(monitoring.ErrBusinessLogic), "DeleteAccount")

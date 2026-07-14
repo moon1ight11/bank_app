@@ -23,7 +23,7 @@ func NewRedisClient(cfg *config.Config) (*RedisClient, error) {
 	return &RedisClient{Client: client}, nil
 }
 
-// метод для закрытия соединения с редис
+// закрытие соединения с редис
 func (r *RedisClient) Close() error {
 	return r.Client.Close()
 }

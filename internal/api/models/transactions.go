@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// модель транзакции
 type Transaction struct {
 	ID          uuid.UUID `json:"transaction_id"`
 	UserFrom    uuid.UUID `json:"user_from"`

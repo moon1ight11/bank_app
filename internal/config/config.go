@@ -12,8 +12,6 @@ func Load() (*Config, error) {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 
-	setDefaults()
-
 	if err := viper.ReadInConfig(); err != nil {
 		log.Printf("Warning: Config file not found: %v", err)
 	}
@@ -24,9 +22,4 @@ func Load() (*Config, error) {
 	}
 
 	return &cfg, nil
-}
-
-// дефолтные значения полей конфигурации
-func setDefaults() {
-	viper.SetDefault("environment", "development")
 }

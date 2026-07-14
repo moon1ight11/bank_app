@@ -14,7 +14,6 @@ import (
 )
 
 func main() {
-	// обработка паники
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Printf("Panic recovered: %v\n", r)
@@ -22,28 +21,23 @@ func main() {
 		}
 	}()
 
-	// инициализация конфигурации
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	// инициализация зависимостей
 	deps := app.InitDependencies(cfg)
 	defer deps.Close()
 
-	// создание сервера
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
 		Handler: deps.Router.GetEngine(),
 	}
 
-	// создаем каналы для сигналов завершения и ошибки сервера
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	serverError := make(chan error, 1)
 
-	// запуск сервера
 	go func() {
 		deps.Logger.Info("Server is starting", "port", cfg.Server.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -52,10 +46,8 @@ func main() {
 		}
 	}()
 
-	// ждем сигналы
 	select {
 	case <-quit:
-		// если поступил сигнал завершения - делаем шатдаун с таймаутом
 		deps.Logger.Info("Shutting down server...")
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -65,7 +57,6 @@ func main() {
 			deps.Logger.Error("Server forced to shutdown:", "error", err)
 		}
 	case err := <-serverError:
-		// еслм пришла ошибка от сервера - фаталим
 		deps.Logger.Error("Server error:", "error", err)
 	}
 

@@ -33,13 +33,16 @@ func NewRouter(
 }
 
 func (r *Router) Init(jwtService jwt.TokenService, logger logger.Logger, metrics *monitoring.Metrics) {
-	// MIDDLEWARE для CORS
+	// мидлвар для корс
 	r.ginEngine.Use(middleware.CORS())
 
-	// регистрация хэндлера для сбора метрик
+	// мидлвар для рейт-лимитера
+	r.ginEngine.Use(middleware.RateLimiter(10, 20))
+
+	// хэндлер для сбора метрик
 	metrics.RegisterMetricsHandler(r.ginEngine, "/metrics")
 
-	// MIDDLEWARE для сбора метрик
+	// мидлвар для сбора метрик
 	r.ginEngine.Use(middleware.MetricsMiddleware(metrics))
 
 	// группировка роутов
@@ -48,12 +51,12 @@ func (r *Router) Init(jwtService jwt.TokenService, logger logger.Logger, metrics
 	verificatorGroup := r.ginEngine.Group("/api/v1/verificator")
 	adminGroup := r.ginEngine.Group("/api/v1/admin")
 
-	// MIDDLEWARE для общей аутентификации
+	// мидлвар для аутентификации
 	userGroup.Use(middleware.Auth(jwtService, logger))
 	verificatorGroup.Use(middleware.Auth(jwtService, logger))
 	adminGroup.Use(middleware.Auth(jwtService, logger))
 
-	// MIDDLEWARE для проверки ролей
+	// мидлвар для проверки ролей
 	userGroup.Use(middleware.AuthUser(logger))
 	verificatorGroup.Use(middleware.AuthVerificator(logger))
 	adminGroup.Use(middleware.AuthAdmin(logger))

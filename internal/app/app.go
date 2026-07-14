@@ -46,7 +46,7 @@ func InitDependencies(cfg *config.Config) *Dependencies {
 		log.Fatalf("Failed to connect to db: %v", err)
 	}
 
-	// поднимаем миграции
+	// миграции
 	if err := db.UpMigrations(); err != nil {
 		log.Fatalf("Failed to upping migrations: %v", err)
 	}
@@ -57,13 +57,13 @@ func InitDependencies(cfg *config.Config) *Dependencies {
 		log.Fatalf("Failed to connect to Redis: %v", err)
 	}
 
-	// кэш-сервис
+	// кэш
 	var cacheService *cache.CacheService
 	if redisClient != nil {
 		cacheService = cache.NewCacheService(redisClient.Client)
 	}
 
-	// jwt-сервис
+	// jwt
 	jwtService := jwt.NewJWTService(cfg.JWT.Secret, cfg.JWT.Expiration)
 
 	// слой репозиториев
@@ -98,21 +98,18 @@ func InitDependencies(cfg *config.Config) *Dependencies {
 func (d *Dependencies) Close() error {
 	var errs []error
 
-	// закрываем редис
 	if d.Redis != nil {
 		if err := d.Redis.Close(); err != nil {
 			errs = append(errs, fmt.Errorf("redis close: %w", err))
 		}
 	}
 
-	// закрываем бд
 	if d.DB != nil {
 		if err := d.DB.DB.Close(); err != nil {
 			errs = append(errs, fmt.Errorf("db close: %w", err))
 		}
 	}
 
-	// считаем ошикбки
 	if len(errs) > 0 {
 		return fmt.Errorf("errors during close: %v", errs)
 	}

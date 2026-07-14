@@ -113,7 +113,7 @@ func (db *Repo) CheckUserPhoneNumberTx(ctx context.Context, phoneNumber string, 
 	return exist, nil
 }
 
-// список пользователей с заданной ролью
+// получение пользователей с заданной ролью
 func (db *Repo) GetUsersByRole(ctx context.Context, role string) ([]GetUser, error) {
 	query := `
 				SELECT id, name, surname, email, phone_number, timezone, role

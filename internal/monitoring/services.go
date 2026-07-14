@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Мидлвар для сбора метрик
+// мидлвар для сбора метрик
 func (m *Metrics) GinMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		m.RequestsInFlight.Inc()
@@ -30,17 +30,17 @@ func (m *Metrics) GinMiddleware() gin.HandlerFunc {
 	}
 }
 
-// Запись операции (ручку дернули)
+// запись операции
 func (m *Metrics) RecordOperation(operationType string) {
 	m.OperationsTotal.WithLabelValues(operationType).Inc()
 }
 
-// Запись ошибки
+// запись ошибки
 func (m *Metrics) RecordError(errorType, handler string) {
 	m.ErrorsTotal.WithLabelValues(errorType, handler).Inc()
 }
 
-// Регистриция эндпоинта для Прометея
+// регистриция эндпоинта для Прометея
 func (m *Metrics) RegisterMetricsHandler(router *gin.Engine, path string) {
 	router.GET(path, func(c *gin.Context) {
 		promhttp.Handler().ServeHTTP(c.Writer, c.Request)

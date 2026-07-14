@@ -24,22 +24,16 @@ func NewJWTService(secret string, expiration time.Duration) TokenService {
 
 // валидация кастомных полей клеймов
 func (c *Claims) CustomFieldsValidate() error {
-	// проверяем валидность uuid
 	if c.UserId == nil {
 		return fmt.Errorf("user id is empty")
 	}
-
-	// проверяем, что имя пользователя не пустое
 	if c.UserName == "" {
 		return fmt.Errorf("invalid user name")
 	}
-
-	// проверяем что фамилия пользователя не пустая
 	if c.UserSurname == "" {
 		return fmt.Errorf("invalid user surname")
 	}
 
-	// проверяем валидность почты
 	pattern := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
 	matched, err := regexp.MatchString(pattern, c.UserEmail)
 	if err != nil {
@@ -53,7 +47,13 @@ func (c *Claims) CustomFieldsValidate() error {
 }
 
 // создание токена
-func (j *Service) GenerateToken(userID uuid.UUID, userName string, userSurname string, userEmail string, userRole models.Role) (string, error) {
+func (j *Service) GenerateToken(
+	userID uuid.UUID,
+	userName string,
+	userSurname string,
+	userEmail string,
+	userRole models.Role,
+) (string, error) {
 	claims := &Claims{
 		UserId:      &userID,
 		UserName:    userName,
@@ -65,7 +65,6 @@ func (j *Service) GenerateToken(userID uuid.UUID, userName string, userSurname s
 		},
 	}
 
-	// валидация кастомных полей
 	if err := claims.CustomFieldsValidate(); err != nil {
 		return "", fmt.Errorf("Error in GenerateToken: %w", err)
 	}
@@ -78,7 +77,7 @@ func (j *Service) GenerateToken(userID uuid.UUID, userName string, userSurname s
 func (j *Service) ParseToken(tokenString string, claims *Claims) (*jwt.Token, error) {
 	return jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if token.Method != jwt.SigningMethodHS256 {
-			return nil, fmt.Errorf("Error in GenerateToken: invalid method")
+			return nil, fmt.Errorf("Error in ParseToken: invalid method")
 		}
 		return j.secret, nil
 	})

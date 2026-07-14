@@ -2,6 +2,7 @@ package models
 
 import "github.com/google/uuid"
 
+// ЕНАМ для валют
 type Currency string
 
 const (

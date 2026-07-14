@@ -14,10 +14,8 @@ import (
 
 // регистрация
 func (u *AuthHandler) SignUp(c *gin.Context) {
-	// записываем операцию в метрики
 	u.metrics.RecordOperation("sign_up")
 
-	// получаем данные пользователя с фронта
 	var user models.UserRegister
 	if err := c.ShouldBindJSON(&user); err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBadRequest), "SignUp")
@@ -26,10 +24,8 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 		return
 	}
 
-	// устанавливаем базовую роль
 	user.Role = models.RoleBasic
 
-	// проверяем, что все нужные поля заполнены
 	if strings.TrimSpace(user.Name) == "" ||
 		strings.TrimSpace(user.Surname) == "" ||
 		strings.TrimSpace(user.Email) == "" ||
@@ -42,11 +38,9 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 		return
 	}
 
-	// создаем контекст с таймаутом
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	// добавляем пользователя в БД
 	userID, err := u.userService.UserAdd(ctx, user)
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBusinessLogic), "SignUp")
@@ -55,7 +49,6 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 		return
 	}
 
-	// генерируем токен для нового пользователя
 	token, err := u.jwtService.GenerateToken(userID, user.Name, user.Surname, user.Email, user.Role)
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrInternal), "SignUp")
@@ -64,7 +57,6 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 		return
 	}
 
-	// устанавливаем куки
 	c.SetCookie("cookie", token, 3600, "/", "", false, true)
 
 	u.logger.Info("User signed up successfully", "userId", userID)
@@ -74,10 +66,8 @@ func (u *AuthHandler) SignUp(c *gin.Context) {
 
 // авторизация
 func (u *AuthHandler) SignIn(c *gin.Context) {
-	// записываем операцию в метрики
 	u.metrics.RecordOperation("sign_in")
 
-	// получаем данные пользователя с фронта
 	var user models.UserAutorization
 	if err := c.ShouldBindJSON(&user); err != nil {
 		u.metrics.RecordError(string(monitoring.ErrBadRequest), "SignIn")
@@ -86,7 +76,6 @@ func (u *AuthHandler) SignIn(c *gin.Context) {
 		return
 	}
 
-	// проверка обязательных полей
 	if strings.TrimSpace(user.Password) == "" || strings.TrimSpace(user.Email) == "" {
 		u.metrics.RecordError(string(monitoring.ErrInvalidInput), "SignIn")
 		u.logger.Error("Error in SignIn", "error:", "One or more required fields are empty")
@@ -94,11 +83,9 @@ func (u *AuthHandler) SignIn(c *gin.Context) {
 		return
 	}
 
-	// создаем контекст с таймаутом
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	// проверка пользователя
 	foundUser, err := u.userService.UserVerification(ctx, user)
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrForbidden), "SignIn")
@@ -107,7 +94,6 @@ func (u *AuthHandler) SignIn(c *gin.Context) {
 		return
 	}
 
-	// генерируем токен для найденного пользователя
 	token, err := u.jwtService.GenerateToken(foundUser.Id, foundUser.Name, foundUser.Surname, foundUser.Email, foundUser.Role)
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrInternal), "SignIn")
@@ -116,7 +102,6 @@ func (u *AuthHandler) SignIn(c *gin.Context) {
 		return
 	}
 
-	// устанавливаем куки
 	c.SetCookie("cookie", token, 3600, "/", "", false, true)
 
 	u.logger.Info("User signed in successfully", "userId", foundUser.Id)
@@ -124,12 +109,10 @@ func (u *AuthHandler) SignIn(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user_id": foundUser.Id})
 }
 
-// выход из профиля
+// логаут
 func (u *AuthHandler) SignOut(c *gin.Context) {
-	// записываем операцию в метрики
 	u.metrics.RecordOperation("sign_out")
 
-	// получаем userID из контекста
 	userID, err := helpers.ExtractAndValidateContextUserId(c)
 	if err != nil {
 		u.metrics.RecordError(string(monitoring.ErrExtractUserId), "SignOut")

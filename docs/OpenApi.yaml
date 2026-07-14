@@ -26,7 +26,7 @@ components:
   securitySchemes:
     cookieAuth:
       $ref: "./components.yaml#/components/securitySchemes/cookieAuth"
-  
+
   schemas:
     Error:
       $ref: "./components.yaml#/components/schemas/Error"

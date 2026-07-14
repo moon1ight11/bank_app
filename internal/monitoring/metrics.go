@@ -6,7 +6,7 @@ import (
 	"runtime"
 )
 
-// Метрики приложения
+// метрики приложения
 type Metrics struct {
 	RequestsTotal    *prometheus.CounterVec
 	RequestDuration  *prometheus.HistogramVec
@@ -16,7 +16,7 @@ type Metrics struct {
 	GoroutinesCount  prometheus.GaugeFunc
 }
 
-// Конструктор метрик
+// конструктор метрик
 func NewMetrics() *Metrics {
 	m := &Metrics{
 		RequestsTotal: promauto.NewCounterVec(
@@ -60,7 +60,6 @@ func NewMetrics() *Metrics {
 		),
 	}
 
-	// Регистрируем функцию для сбора системных метрик
 	prometheus.MustRegister(prometheus.NewGaugeFunc(
 		prometheus.GaugeOpts{
 			Name: "go_goroutines_count",
